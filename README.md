@@ -11,7 +11,6 @@ So I went and wrote one.
 * Allow per-monitor scaling
 * Allow arbitrary monitor positioning
 * Implement "scale everything so all the pixels are the same size" (not done yet)
-* Support rotation (not there yet)
 
 ## To try:
 

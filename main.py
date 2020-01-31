@@ -99,9 +99,6 @@ class Window(QObject):
         self.ui.resetButton.clicked.connect(self.do_reset)
         self.ui.cancelButton.clicked.connect(self.ui.reject)
 
-    def orientation_changed(self):
-        print('Orientation: ', self.ui.orientationCombo.currentIndex())
-
     def do_reset(self):
         for n in self.xrandr_info:
             self.xrandr_info[n].update(self.orig_xrandr_info[n])
@@ -130,6 +127,12 @@ class Window(QObject):
             monitor["item"] = mon_item
         self.adjust_view()
         self.scale_changed()  # Trigger scale labels update
+
+    def orientation_changed(self):
+        mon = self.ui.screenCombo.currentText()
+        orientation = self.ui.orientationCombo.currentIndex()
+        self.xrandr_info[mon]["orientation"] = orientation
+        self.mode_changed()
 
     def mode_changed(self):
         mon = self.ui.screenCombo.currentText()
