@@ -37,6 +37,7 @@ class MonitorItem(QGraphicsRectItem, QObject):
     def mousePressEvent(self, event):
         self.setCursor(Qt.ClosedHandCursor)
         self.orig_pos = self.pos()
+        self.window.ui.screenCombo.setCurrentText(self.name)
 
     def mouseReleaseEvent(self, event):
         self.setCursor(Qt.OpenHandCursor)
