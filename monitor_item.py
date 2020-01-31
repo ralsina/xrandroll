@@ -1,9 +1,11 @@
 from PySide2.QtCore import Qt
 from PySide2.QtWidgets import QGraphicsRectItem, QGraphicsTextItem
+from PySide2.QtGui import QBrush, QPen
 
 
 class MonitorItem(QGraphicsRectItem):
     def __init__(self, *a, **kw):
+        primary = kw.pop('primary')
         super().__init__(*a, **kw)
         self.setAcceptedMouseButtons(Qt.LeftButton)
         self.label = QGraphicsTextItem(kw["name"], self)
@@ -12,6 +14,8 @@ class MonitorItem(QGraphicsRectItem):
             self.rect().height() / self.label.boundingRect().height(),
         )
         self.label.setScale(label_scale)
+        if primary:
+            self.setBrush(QBrush('#eee8d5', Qt.SolidPattern))
 
     def mousePressEvent(self, event):
         self.setCursor(Qt.ClosedHandCursor)
