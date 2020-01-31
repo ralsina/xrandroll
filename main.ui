@@ -69,10 +69,30 @@
       </widget>
      </item>
      <item row="4" column="1">
-      <widget class="QComboBox" name="comboBox_3">
+      <widget class="QComboBox" name="orientationCombo">
        <property name="sizeAdjustPolicy">
         <enum>QComboBox::AdjustToContents</enum>
        </property>
+       <item>
+        <property name="text">
+         <string>Normal</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Left (90° cw)</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Inverted (180°)</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Right (90° ccw)</string>
+        </property>
+       </item>
       </widget>
      </item>
      <item row="5" column="0">

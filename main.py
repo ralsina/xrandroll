@@ -39,6 +39,16 @@ def parse_monitor(line):
     else:
         enabled = False
         res_x = res_y = pos_x = pos_y = w_in_mm = h_in_mm = 0
+
+    left_side = line.split(' (normal left inverted ')[0]
+    orientation = 0
+    if 'left' in left_side:
+        orientation = 1
+    elif 'inverted' in left_side:
+        orientation = 2
+    elif 'right' in left_side:
+        orientation = 3
+
     return (
         name,
         primary,
@@ -49,6 +59,7 @@ def parse_monitor(line):
         int(pos_x),
         int(pos_y),
         enabled,
+        orientation,
     )
 
 
@@ -164,6 +175,7 @@ class Window(QObject):
                     pos_x,
                     pos_y,
                     enabled,
+                    orientation,
                 ) = parse_monitor(line)
                 self.xrandr_info[name] = dict(
                     primary=primary,
@@ -177,6 +189,7 @@ class Window(QObject):
                     current_mode=None,
                     enabled=enabled,
                     replica_of=[],
+                    orientation=orientation,
                 )
             elif line[0] == " ":  # A mode
                 mode_name = line.strip().split()[0]
@@ -212,6 +225,7 @@ class Window(QObject):
         self.ui.verticalScale.setValue(v_scale * 100)
         self.ui.primary.setChecked(self.xrandr_info[name]["primary"])
         self.ui.enabled.setChecked(self.xrandr_info[name]["enabled"])
+        self.ui.orientationCombo.setCurrentIndex(self.xrandr_info[name]["orientation"])
 
         self.ui.replicaOf.clear()
         self.ui.replicaOf.addItem("None")
