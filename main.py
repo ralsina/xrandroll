@@ -111,7 +111,7 @@ class Window(QObject):
     def do_apply(self):
         cli = gen_xrandr_from_data(self.xrandr_info)
         print(cli)
-        # subprocess.check_call(shlex.split(cli))
+        subprocess.check_call(shlex.split(cli))
 
     def fill_ui(self):
         """Load data from xrandr and setup the whole thing."""
