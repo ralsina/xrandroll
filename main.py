@@ -69,7 +69,7 @@ class Window(QObject):
         for name, monitor in self.xrandr_info.items():
             self.ui.screenCombo.addItem(name)
             mon_item = MonitorItem(0, 0, 0, 0, data=monitor, window=self, name=name,)
-            mon_item.setPos(monitor["pos_x"], monitor["pos_y"])
+            # mon_item.setPos(monitor["pos_x"], monitor["pos_y"])
             self.scene.addItem(mon_item)
             monitor["item"] = mon_item
         self.adjust_view()
