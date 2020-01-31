@@ -80,7 +80,7 @@
        </item>
        <item>
         <property name="text">
-         <string>Left (90° cw)</string>
+         <string>Left (90° ccw)</string>
         </property>
        </item>
        <item>
@@ -90,7 +90,7 @@
        </item>
        <item>
         <property name="text">
-         <string>Right (90° ccw)</string>
+         <string>Right (90° cw)</string>
         </property>
        </item>
       </widget>

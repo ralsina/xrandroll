@@ -18,6 +18,8 @@ def gen_xrandr_from_data(data):
         cli.append(f'--pos {int(mon["pos_x"])}x{int(mon["pos_y"])}')
         cli.append(f'--mode {mon["current_mode"]}')
         mod_x, mod_y = [int(n) for n in mon["current_mode"].split("x")]
+        if mon["orientation"] in (1,3):
+            mod_x, mod_y = mod_y, mod_x
         cli.append(f'--scale {mon["res_x"]/mod_x}x{mon["res_y"]/mod_y}')
         cli.append(f"--rotate {['normal', 'left', 'inverted', 'right'][mon['orientation']]}")
         if mon["primary"]:
@@ -84,6 +86,7 @@ class Window(QObject):
         ui.show()
         self.ui.setWindowTitle('Display Configuration')
         self.ui.screenCombo.currentTextChanged.connect(self.monitor_selected)
+        self.ui.orientationCombo.currentIndexChanged.connect(self.orientation_changed)
         self.xrandr_info = {}
         self.get_xrandr_info()
         self.orig_xrandr_info = deepcopy(self.xrandr_info)
@@ -96,6 +99,9 @@ class Window(QObject):
         self.ui.resetButton.clicked.connect(self.do_reset)
         self.ui.cancelButton.clicked.connect(self.ui.reject)
 
+    def orientation_changed(self):
+        print('Orientation: ', self.ui.orientationCombo.currentIndex())
+
     def do_reset(self):
         for n in self.xrandr_info:
             self.xrandr_info[n].update(self.orig_xrandr_info[n])
@@ -107,7 +113,8 @@ class Window(QObject):
 
     def do_apply(self):
         cli = gen_xrandr_from_data(self.xrandr_info)
-        subprocess.check_call(shlex.split(cli))
+        print(cli)
+        # subprocess.check_call(shlex.split(cli))
 
     def fill_ui(self):
         """Load data from xrandr and setup the whole thing."""
