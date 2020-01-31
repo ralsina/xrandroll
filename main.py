@@ -9,6 +9,22 @@ from PySide2.QtWidgets import QApplication, QGraphicsScene
 from monitor_item import MonitorItem
 
 
+def gen_xrandr_from_data(data):
+    """Takes monitor data and generates a xrandr command line."""
+    cli = ['xrandr']
+    for name, mon in data.items():
+        cli.append(f'--output {name}')
+        cli.append(f'--pos {int(mon["pos_x"])}x{int(mon["pos_y"])}')
+        cli.append(f'--mode {mon["current_mode"]}')
+        mod_x, mod_y = [int(n) for n in mon['current_mode'].split('x')]
+        cli.append(f'--scale {mon["res_x"]/mod_x}x{mon["res_y"]/mod_y}')
+        if mon['primary']:
+            cli.append('--primary')
+        if not mon['enabled']:
+            cli.append('--off')
+
+    return ' '.join(cli)
+
 def parse_monitor(line):
     parts = line.split()
     name = parts[0]
@@ -60,6 +76,23 @@ class Window(QObject):
         self.ui.horizontalScale.valueChanged.connect(self.scale_changed)
         self.ui.verticalScale.valueChanged.connect(self.scale_changed)
         self.ui.modes.currentTextChanged.connect(self.mode_changed)
+        self.ui.applyButton.clicked.connect(self.do_apply)
+        self.ui.okButton.clicked.connect(self.do_ok)
+        self.ui.resetButton.clicked.connect(self.do_reset)
+        self.ui.cancelButton.clicked.connect(self.ui.reject)
+
+    def do_reset(self):
+        for n in self.xrandr_info:
+            self.xrandr_info[n].update(self.orig_xrandr_info[n])
+        self.fill_ui()
+
+    def do_ok(self):
+        self.do_apply()
+        self.ui.accept()
+
+    def do_apply(self):
+        cli = gen_xrandr_from_data(self.xrandr_info)
+        print(cli)
 
     def fill_ui(self):
         """Load data from xrandr and setup the whole thing."""
@@ -74,6 +107,7 @@ class Window(QObject):
             self.scene.addItem(mon_item)
             monitor["item"] = mon_item
         self.adjust_view()
+        self.scale_changed()  # Trigger scale labels update
 
     def mode_changed(self):
         mon = self.ui.screenCombo.currentText()
@@ -153,6 +187,8 @@ class Window(QObject):
                     self.xrandr_info[a]["replica_of"].append(b)
 
     def monitor_selected(self, name):
+        if not name:
+            return
         # needed so we don't flip through all modes as they are added
         self.ui.modes.blockSignals(True)
         # Show modes
