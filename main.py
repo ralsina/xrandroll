@@ -19,6 +19,7 @@ def gen_xrandr_from_data(data):
         cli.append(f'--mode {mon["current_mode"]}')
         mod_x, mod_y = [int(n) for n in mon["current_mode"].split("x")]
         cli.append(f'--scale {mon["res_x"]/mod_x}x{mon["res_y"]/mod_y}')
+        cli.append(f"--rotate {['normal', 'left', 'inverted', 'right'][mon['orientation']]}")
         if mon["primary"]:
             cli.append("--primary")
         if not mon["enabled"]:
@@ -132,12 +133,20 @@ class Window(QObject):
         self.xrandr_info[mon]["current_mode"] = mode
         mode_x, mode_y = mode.split("x")
         # use resolution via scaling
-        self.xrandr_info[mon]["res_x"] = int(
-            int(mode_x) * self.ui.horizontalScale.value() / 100
-        )
-        self.xrandr_info[mon]["res_y"] = int(
-            int(mode_y) * self.ui.verticalScale.value() / 100
-        )
+        if self.xrandr_info[mon]["orientation"] in (0,2): 
+            self.xrandr_info[mon]["res_x"] = int(
+                int(mode_x) * self.ui.horizontalScale.value() / 100
+            )
+            self.xrandr_info[mon]["res_y"] = int(
+                int(mode_y) * self.ui.verticalScale.value() / 100
+            )
+        else:
+            self.xrandr_info[mon]["res_x"] = int(
+                int(mode_y) * self.ui.horizontalScale.value() / 100
+            )
+            self.xrandr_info[mon]["res_y"] = int(
+                int(mode_x) * self.ui.verticalScale.value() / 100
+            )
         self.xrandr_info[mon]["item"].update_visuals(self.xrandr_info[mon])
 
     def monitor_moved(self):
@@ -219,8 +228,12 @@ class Window(QObject):
         mod_x, mod_y = [
             int(x) for x in self.xrandr_info[name]["current_mode"].split("x")
         ]
-        h_scale = self.xrandr_info[name]["res_x"] / mod_x
-        v_scale = self.xrandr_info[name]["res_y"] / mod_y
+        if self.xrandr_info[name]["orientation"] in (0,2):
+            h_scale = self.xrandr_info[name]["res_x"] / mod_x
+            v_scale = self.xrandr_info[name]["res_y"] / mod_y
+        else:
+            h_scale = self.xrandr_info[name]["res_y"] / mod_x
+            v_scale = self.xrandr_info[name]["res_x"] / mod_y
         self.ui.horizontalScale.setValue(h_scale * 100)
         self.ui.verticalScale.setValue(v_scale * 100)
         self.ui.primary.setChecked(self.xrandr_info[name]["primary"])

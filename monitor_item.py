@@ -13,6 +13,8 @@ class MonitorItem(QGraphicsRectItem, QObject):
         super().__init__(0, 0, 0, 0)
         self.setAcceptedMouseButtons(Qt.LeftButton)
         self.label = QGraphicsTextItem("", self)
+        self.bottom_edge = QGraphicsRectItem(0, 0, 0, 0, self)
+        self.bottom_edge.setBrush(QBrush("red", Qt.SolidPattern))
         self.update_visuals(data)
 
     def update_visuals(self, data):
@@ -20,7 +22,22 @@ class MonitorItem(QGraphicsRectItem, QObject):
             label_text = f"{self.name} [{','.join(data['replica_of'])}]"
         else:
             label_text = self.name
-        self.setRect(0, 0, data["res_x"], data["res_y"])
+        if data["orientation"] in (0, 2):
+            self.setRect(0, 0, data["res_x"], data["res_y"])
+            if data["orientation"] == 0:
+                self.bottom_edge.setRect(
+                    0, data["res_y"] - 50, data["res_x"], 50
+                )
+            if data["orientation"] == 2:
+                self.bottom_edge.setRect(0, 0, data["res_x"], 50)
+        else:
+            self.setRect(0, 0, data["res_y"], data["res_x"])
+            if data["orientation"] == 1:
+                self.bottom_edge.setRect(
+                    data["res_y"] - 50, 0, 50, data["res_x"]
+                )
+            if data["orientation"] == 3:
+                self.bottom_edge.setRect(0, 0, 50, data["res_x"])
         self.setPos(data["pos_x"], data["pos_y"])
         self.label.setPlainText(label_text)
         label_scale = min(
