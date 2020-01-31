@@ -92,10 +92,12 @@ class Window(QObject):
         self.update_replica_of_data()
         for _, mon in self.xrandr_info.items():
             mon['item'].update_visuals(mon)
+        self.adjust_view()
 
     def adjust_view(self):
+        self.ui.sceneView.resetTransform()
         self.ui.sceneView.ensureVisible(self.scene.sceneRect(), 100, 100)
-        scale_factor = 0.7 * min(
+        scale_factor = .8 * min(
             self.ui.sceneView.width() / self.scene.sceneRect().width(),
             self.ui.sceneView.height() / self.scene.sceneRect().height(),
         )
