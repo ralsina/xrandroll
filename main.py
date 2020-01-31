@@ -74,6 +74,7 @@ class Window(QObject):
                 monitor["res_x"],
                 monitor["res_y"],
                 name=name,
+                replica_of=monitor['replica_of'],
                 primary=monitor["primary"],
             )
             mon_item.setPos(monitor["pos_x"], monitor["pos_y"])
@@ -116,6 +117,7 @@ class Window(QObject):
                     modes=[],
                     current_mode=None,
                     enabled=enabled,
+                    replica_of=[],
                 )
             elif line[0] == " ":  # A mode
                 mode_name = line.strip().split()[0]
@@ -123,6 +125,11 @@ class Window(QObject):
                 if "*" in line:
                     print(f"Current mode for {name}: {mode_name}")
                     self.xrandr_info[name]["current_mode"] = mode_name
+
+        for a in self.xrandr_info:
+            for b in self.xrandr_info:
+                if a !=b and is_replica_of(self.xrandr_info[a], self.xrandr_info[b]):
+                    self.xrandr_info[a]['replica_of'].append(b)
 
     def monitor_selected(self, name):
         # Show modes
@@ -145,7 +152,7 @@ class Window(QObject):
         for mon in self.xrandr_info:
             if mon != name:
                 self.ui.replicaOf.addItem(mon)
-                if is_replica_of(self.xrandr_info[mon], self.xrandr_info[name]):
+                if mon in self.xrandr_info[name]['replica_of']:
                     self.ui.replicaOf.setCurrentText(mon)
 
     def updateScaleLabels(self):
