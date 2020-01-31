@@ -53,14 +53,13 @@ class Window(QObject):
         self.ui = ui
         ui.show()
         self.ui.screenCombo.currentTextChanged.connect(self.monitor_selected)
-        self.ui.horizontalScale.valueChanged.connect(self.updateScaleLabels)
-        self.ui.verticalScale.valueChanged.connect(self.updateScaleLabels)
         self.xrandr_info = {}
         self.get_xrandr_info()
         self.orig_xrandr_info = deepcopy(self.xrandr_info)
         self.fill_ui()
-
-        self.ui.modes.currentTextChanged.connect(self.change_mode)
+        self.ui.horizontalScale.valueChanged.connect(self.scale_changed)
+        self.ui.verticalScale.valueChanged.connect(self.scale_changed)
+        self.ui.modes.currentTextChanged.connect(self.mode_changed)
 
     def fill_ui(self):
         """Load data from xrandr and setup the whole thing."""
@@ -76,9 +75,11 @@ class Window(QObject):
             monitor["item"] = mon_item
         self.adjust_view()
 
-    def change_mode(self):
+    def mode_changed(self):
         mon = self.ui.screenCombo.currentText()
         mode = self.ui.modes.currentText()
+        if not mode:
+            return
         print(f'Changing {mon} to {mode}')
         self.xrandr_info[mon]['current_mode'] = mode
         mode_x, mode_y = mode.split('x')
@@ -152,6 +153,8 @@ class Window(QObject):
                     self.xrandr_info[a]["replica_of"].append(b)
 
     def monitor_selected(self, name):
+        # needed so we don't flip through all modes as they are added
+        self.ui.modes.blockSignals(True)
         # Show modes
         self.ui.modes.clear()
         for mode in self.xrandr_info[name]["modes"]:
@@ -174,10 +177,13 @@ class Window(QObject):
                 self.ui.replicaOf.addItem(mon)
                 if mon in self.xrandr_info[name]["replica_of"]:
                     self.ui.replicaOf.setCurrentText(mon)
+        self.ui.modes.blockSignals(False)
 
-    def updateScaleLabels(self):
+    def scale_changed(self):
         self.ui.horizontalScaleLabel.setText(f"{self.ui.horizontalScale.value()}%")
         self.ui.verticalScaleLabel.setText(f"{self.ui.verticalScale.value()}%")
+        self.mode_changed()  # Not really, but it's the same thing
+
 
 
 if __name__ == "__main__":
