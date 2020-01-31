@@ -1,9 +1,10 @@
 import subprocess
 import sys
 
-from PySide2.QtWidgets import QApplication, QGraphicsScene, QGraphicsRectItem
+from PySide2.QtCore import QFile, QPoint, Qt
 from PySide2.QtUiTools import QUiLoader
-from PySide2.QtCore import QFile, Qt, QPoint
+from PySide2.QtWidgets import (QApplication, QGraphicsRectItem, QGraphicsScene,
+                               QGraphicsTextItem)
 
 
 def parse_monitor(line):
@@ -49,6 +50,11 @@ class MonitorItem(QGraphicsRectItem):
     def __init__(self, *a, **kw):
         super().__init__(*a, **kw)
         self.setAcceptedMouseButtons(Qt.LeftButton)
+        self.label = QGraphicsTextItem(kw['name'], self)
+        label_scale = min(
+            self.rect().width() / self.label.boundingRect().width(), 
+            self.rect().height() / self.label.boundingRect().height()) 
+        self.label.setScale(label_scale)
 
     def mousePressEvent(self, event):
         self.setCursor(Qt.ClosedHandCursor)
@@ -61,21 +67,19 @@ class MonitorItem(QGraphicsRectItem):
         view = event.widget().parent()
         click_pos = event.buttonDownScreenPos(Qt.LeftButton)
         current_pos = event.screenPos()
-        print(current_pos - click_pos)
-        print(view.mapToScene(view.mapFromScene(self.orig_pos) + current_pos - click_pos))
-        self.setPos(view.mapToScene(view.mapFromScene(self.orig_pos) + current_pos - click_pos))
-        # self.setPos(delta.x(), delta.y())
+        self.setPos(
+            view.mapToScene(view.mapFromScene(self.orig_pos) + current_pos - click_pos)
+        )
 
 
 def fill_ui(data, window):
     global scene
     scene = QGraphicsScene(window)
-    scene.addText("Hello World!")
     window.sceneView.setScene(scene)
     window.screenCombo.clear()
     for name, monitor in xrandr_info.items():
         window.screenCombo.addItem(name)
-        mon_item = MonitorItem(0, 0, monitor["res_x"], monitor["res_y"])
+        mon_item = MonitorItem(0, 0, monitor["res_x"], monitor["res_y"], name=name)
         mon_item.setPos(monitor["pos_x"], monitor["pos_y"])
         scene.addItem(mon_item)
 
