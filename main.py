@@ -1,8 +1,9 @@
 from copy import deepcopy
+import shlex
 import subprocess
 import sys
 
-from PySide2.QtCore import QFile, QObject, Slot
+from PySide2.QtCore import QFile, QObject
 from PySide2.QtUiTools import QUiLoader
 from PySide2.QtWidgets import QApplication, QGraphicsScene
 
@@ -11,19 +12,20 @@ from monitor_item import MonitorItem
 
 def gen_xrandr_from_data(data):
     """Takes monitor data and generates a xrandr command line."""
-    cli = ['xrandr']
+    cli = ["xrandr"]
     for name, mon in data.items():
-        cli.append(f'--output {name}')
+        cli.append(f"--output {name}")
         cli.append(f'--pos {int(mon["pos_x"])}x{int(mon["pos_y"])}')
         cli.append(f'--mode {mon["current_mode"]}')
-        mod_x, mod_y = [int(n) for n in mon['current_mode'].split('x')]
+        mod_x, mod_y = [int(n) for n in mon["current_mode"].split("x")]
         cli.append(f'--scale {mon["res_x"]/mod_x}x{mon["res_y"]/mod_y}')
-        if mon['primary']:
-            cli.append('--primary')
-        if not mon['enabled']:
-            cli.append('--off')
+        if mon["primary"]:
+            cli.append("--primary")
+        if not mon["enabled"]:
+            cli.append("--off")
 
-    return ' '.join(cli)
+    return " ".join(cli)
+
 
 def parse_monitor(line):
     parts = line.split()
@@ -68,6 +70,7 @@ class Window(QObject):
         super().__init__()
         self.ui = ui
         ui.show()
+        self.ui.setWindowTitle('Display Configuration')
         self.ui.screenCombo.currentTextChanged.connect(self.monitor_selected)
         self.xrandr_info = {}
         self.get_xrandr_info()
@@ -92,7 +95,7 @@ class Window(QObject):
 
     def do_apply(self):
         cli = gen_xrandr_from_data(self.xrandr_info)
-        print(cli)
+        subprocess.check_call(shlex.split(cli))
 
     def fill_ui(self):
         """Load data from xrandr and setup the whole thing."""
@@ -114,13 +117,17 @@ class Window(QObject):
         mode = self.ui.modes.currentText()
         if not mode:
             return
-        print(f'Changing {mon} to {mode}')
-        self.xrandr_info[mon]['current_mode'] = mode
-        mode_x, mode_y = mode.split('x')
+        print(f"Changing {mon} to {mode}")
+        self.xrandr_info[mon]["current_mode"] = mode
+        mode_x, mode_y = mode.split("x")
         # use resolution via scaling
-        self.xrandr_info[mon]['res_x'] = int(int(mode_x) * self.ui.horizontalScale.value() / 100)
-        self.xrandr_info[mon]['res_y'] = int(int(mode_y) * self.ui.verticalScale.value() / 100)
-        self.xrandr_info[mon]['item'].update_visuals(self.xrandr_info[mon])
+        self.xrandr_info[mon]["res_x"] = int(
+            int(mode_x) * self.ui.horizontalScale.value() / 100
+        )
+        self.xrandr_info[mon]["res_y"] = int(
+            int(mode_y) * self.ui.verticalScale.value() / 100
+        )
+        self.xrandr_info[mon]["item"].update_visuals(self.xrandr_info[mon])
 
     def monitor_moved(self):
         "Update xrandr_info with new monitor positions"
@@ -219,7 +226,6 @@ class Window(QObject):
         self.ui.horizontalScaleLabel.setText(f"{self.ui.horizontalScale.value()}%")
         self.ui.verticalScaleLabel.setText(f"{self.ui.verticalScale.value()}%")
         self.mode_changed()  # Not really, but it's the same thing
-
 
 
 if __name__ == "__main__":
