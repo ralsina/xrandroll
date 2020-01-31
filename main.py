@@ -1,10 +1,11 @@
 import subprocess
 import sys
 
-from PySide2.QtCore import QFile, QPoint, Qt
+from PySide2.QtCore import QFile, QObject
 from PySide2.QtUiTools import QUiLoader
-from PySide2.QtWidgets import (QApplication, QGraphicsRectItem, QGraphicsScene,
-                               QGraphicsTextItem)
+from PySide2.QtWidgets import QApplication, QGraphicsScene
+
+from monitor_item import MonitorItem
 
 
 def parse_monitor(line):
@@ -27,69 +28,57 @@ def parse_monitor(line):
     )
 
 
-xrandr_info = {}
+class Window(QObject):
+    def __init__(self, ui):
+        super().__init__()
+        self.ui = ui
+        ui.show()
+        self.ui.screenCombo.currentTextChanged.connect(self.monitor_selected)
+        self.xrandr_info = {}
+        self.get_xrandr_info()
+        self.fill_ui()
 
+    def fill_ui(self):
+        """Load data from xrandr and setup the whole thing."""
+        self.scene = QGraphicsScene(self)
+        self.ui.sceneView.setScene(self.scene)
+        self.ui.screenCombo.clear()
 
-def get_xrandr_info():
-    data = subprocess.check_output(["xrandr"]).decode("utf-8").splitlines()
-    outputs = [x for x in data if x and x[0] not in "S \t"]
-    for o in outputs:
-        name, primary, res_x, res_y, w_in_mm, h_in_mm, pos_x, pos_y = parse_monitor(o)
-        xrandr_info[name] = dict(
-            primary=primary,
-            res_x=res_x,
-            res_y=res_y,
-            w_in_mm=w_in_mm,
-            h_in_mm=h_in_mm,
-            pos_x=pos_x,
-            pos_y=pos_y,
+        for name, monitor in self.xrandr_info.items():
+            self.ui.screenCombo.addItem(name)
+            mon_item = MonitorItem(0, 0, monitor["res_x"], monitor["res_y"], name=name)
+            mon_item.setPos(monitor["pos_x"], monitor["pos_y"])
+            self.scene.addItem(mon_item)
+            monitor["item"] = mon_item
+        self.adjust_view()
+
+    def adjust_view(self):
+        self.ui.sceneView.ensureVisible(self.scene.sceneRect(), 100, 100)
+        scale_factor = 0.7 * min(
+            self.ui.sceneView.width() / self.scene.sceneRect().width(),
+            self.ui.sceneView.height() / self.scene.sceneRect().height(),
         )
+        self.ui.sceneView.scale(scale_factor, scale_factor)
 
+    def get_xrandr_info(self):
+        data = subprocess.check_output(["xrandr"]).decode("utf-8").splitlines()
+        outputs = [x for x in data if x and x[0] not in "S \t"]
+        for o in outputs:
+            name, primary, res_x, res_y, w_in_mm, h_in_mm, pos_x, pos_y = parse_monitor(
+                o
+            )
+            self.xrandr_info[name] = dict(
+                primary=primary,
+                res_x=res_x,
+                res_y=res_y,
+                w_in_mm=w_in_mm,
+                h_in_mm=h_in_mm,
+                pos_x=pos_x,
+                pos_y=pos_y,
+            )
 
-class MonitorItem(QGraphicsRectItem):
-    def __init__(self, *a, **kw):
-        super().__init__(*a, **kw)
-        self.setAcceptedMouseButtons(Qt.LeftButton)
-        self.label = QGraphicsTextItem(kw['name'], self)
-        label_scale = min(
-            self.rect().width() / self.label.boundingRect().width(), 
-            self.rect().height() / self.label.boundingRect().height()) 
-        self.label.setScale(label_scale)
-
-    def mousePressEvent(self, event):
-        self.setCursor(Qt.ClosedHandCursor)
-        self.orig_pos = self.pos()
-
-    def mouseReleaseEvent(self, event):
-        self.setCursor(Qt.OpenHandCursor)
-
-    def mouseMoveEvent(self, event):
-        view = event.widget().parent()
-        click_pos = event.buttonDownScreenPos(Qt.LeftButton)
-        current_pos = event.screenPos()
-        self.setPos(
-            view.mapToScene(view.mapFromScene(self.orig_pos) + current_pos - click_pos)
-        )
-
-
-def fill_ui(data, window):
-    global scene
-    scene = QGraphicsScene(window)
-    window.sceneView.setScene(scene)
-    window.screenCombo.clear()
-    for name, monitor in xrandr_info.items():
-        window.screenCombo.addItem(name)
-        mon_item = MonitorItem(0, 0, monitor["res_x"], monitor["res_y"], name=name)
-        mon_item.setPos(monitor["pos_x"], monitor["pos_y"])
-        scene.addItem(mon_item)
-
-    print(scene.sceneRect())
-    window.sceneView.ensureVisible(scene.sceneRect(), 100, 100)
-    scale_factor = 0.7 * min(
-        window.sceneView.width() / scene.sceneRect().width(),
-        window.sceneView.height() / scene.sceneRect().height(),
-    )
-    window.sceneView.scale(scale_factor, scale_factor)
+    def monitor_selected(self, name):
+        print(name)
 
 
 if __name__ == "__main__":
@@ -99,9 +88,6 @@ if __name__ == "__main__":
     ui_file.open(QFile.ReadOnly)
 
     loader = QUiLoader()
-    window = loader.load(ui_file)
-    window.show()
-    get_xrandr_info()
-    fill_ui(xrandr_info, window)
+    window = Window(loader.load(ui_file))
 
     sys.exit(app.exec_())
