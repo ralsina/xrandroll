@@ -60,6 +60,8 @@ class Window(QObject):
         self.orig_xrandr_info = deepcopy(self.xrandr_info)
         self.fill_ui()
 
+        self.ui.modes.currentTextChanged.connect(self.change_mode)
+
     def fill_ui(self):
         """Load data from xrandr and setup the whole thing."""
         self.scene = QGraphicsScene(self)
@@ -74,7 +76,17 @@ class Window(QObject):
             monitor["item"] = mon_item
         self.adjust_view()
 
-    @Slot()
+    def change_mode(self):
+        mon = self.ui.screenCombo.currentText()
+        mode = self.ui.modes.currentText()
+        print(f'Changing {mon} to {mode}')
+        self.xrandr_info[mon]['current_mode'] = mode
+        mode_x, mode_y = mode.split('x')
+        # use resolution via scaling
+        self.xrandr_info[mon]['res_x'] = int(int(mode_x) * self.ui.horizontalScale.value() / 100)
+        self.xrandr_info[mon]['res_y'] = int(int(mode_y) * self.ui.verticalScale.value() / 100)
+        self.xrandr_info[mon]['item'].update_visuals(self.xrandr_info[mon])
+
     def monitor_moved(self):
         "Update xrandr_info with new monitor positions"
         for _, mon in self.xrandr_info.items():
