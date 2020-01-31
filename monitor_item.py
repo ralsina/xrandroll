@@ -20,6 +20,8 @@ class MonitorItem(QGraphicsRectItem, QObject):
             label_text = f"{self.name} [{','.join(data['replica_of'])}]"
         else:
             label_text = self.name
+        self.setRect(0, 0, data['res_x'], data['res_y'])
+        self.setPos(data['pos_x'], data['pos_y'])
         self.label.setPlainText(label_text)
         label_scale = min(
             self.rect().width() / self.label.boundingRect().width(),

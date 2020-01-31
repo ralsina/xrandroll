@@ -68,15 +68,7 @@ class Window(QObject):
 
         for name, monitor in self.xrandr_info.items():
             self.ui.screenCombo.addItem(name)
-            mon_item = MonitorItem(
-                0,
-                0,
-                monitor["res_x"],
-                monitor["res_y"],
-                data=monitor,
-                window=self,
-                name=name,
-            )
+            mon_item = MonitorItem(0, 0, 0, 0, data=monitor, window=self, name=name,)
             mon_item.setPos(monitor["pos_x"], monitor["pos_y"])
             self.scene.addItem(mon_item)
             monitor["item"] = mon_item
@@ -86,18 +78,18 @@ class Window(QObject):
     def monitor_moved(self):
         "Update xrandr_info with new monitor positions"
         for _, mon in self.xrandr_info.items():
-            item = mon['item']
-            mon['pos_x'] = item.x()
-            mon['pos_y'] = item.y()
+            item = mon["item"]
+            mon["pos_x"] = item.x()
+            mon["pos_y"] = item.y()
         self.update_replica_of_data()
         for _, mon in self.xrandr_info.items():
-            mon['item'].update_visuals(mon)
+            mon["item"].update_visuals(mon)
         self.adjust_view()
 
     def adjust_view(self):
         self.ui.sceneView.resetTransform()
         self.ui.sceneView.ensureVisible(self.scene.sceneRect(), 100, 100)
-        scale_factor = .8 * min(
+        scale_factor = 0.8 * min(
             self.ui.sceneView.width() / self.scene.sceneRect().width(),
             self.ui.sceneView.height() / self.scene.sceneRect().height(),
         )
@@ -142,10 +134,10 @@ class Window(QObject):
 
     def update_replica_of_data(self):
         for a in self.xrandr_info:
-            self.xrandr_info[a]['replica_of'] = []
+            self.xrandr_info[a]["replica_of"] = []
             for b in self.xrandr_info:
                 if a != b and is_replica_of(self.xrandr_info[a], self.xrandr_info[b]):
-                    self.xrandr_info[a]['replica_of'].append(b)
+                    self.xrandr_info[a]["replica_of"].append(b)
 
     def monitor_selected(self, name):
         # Show modes
@@ -168,7 +160,7 @@ class Window(QObject):
         for mon in self.xrandr_info:
             if mon != name:
                 self.ui.replicaOf.addItem(mon)
-                if mon in self.xrandr_info[name]['replica_of']:
+                if mon in self.xrandr_info[name]["replica_of"]:
                     self.ui.replicaOf.setCurrentText(mon)
 
     def updateScaleLabels(self):
