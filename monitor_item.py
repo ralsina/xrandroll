@@ -1,11 +1,10 @@
-from PySide2.QtCore import Qt, Signal, QObject
+from PySide2.QtCore import Qt, QObject
 from PySide2.QtWidgets import QGraphicsRectItem, QGraphicsTextItem
-from PySide2.QtGui import QBrush, QPen
+from PySide2.QtGui import QBrush
 
 
 class MonitorItem(QGraphicsRectItem, QObject):
     z = 0
-
 
     def __init__(self, *a, **kw):
         data = kw.pop("data")

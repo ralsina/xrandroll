@@ -2,7 +2,7 @@ from copy import deepcopy
 import subprocess
 import sys
 
-from PySide2.QtCore import QFile, QObject, Slot, SIGNAL
+from PySide2.QtCore import QFile, QObject, Slot
 from PySide2.QtUiTools import QUiLoader
 from PySide2.QtWidgets import QApplication, QGraphicsScene
 
@@ -36,7 +36,7 @@ def parse_monitor(line):
 
 def is_replica_of(a, b):
     """Return True if monitor a is a replica of b.
-    
+
     Replica means same resolution and position.
     """
     return (
@@ -89,7 +89,7 @@ class Window(QObject):
             item = mon['item']
             mon['pos_x'] = item.x()
             mon['pos_y'] = item.y()
-        self.set_replica_of()
+        self.update_replica_of_data()
         for _, mon in self.xrandr_info.items():
             mon['item'].update_visuals(mon)
 
@@ -136,13 +136,13 @@ class Window(QObject):
                 if "*" in line:
                     print(f"Current mode for {name}: {mode_name}")
                     self.xrandr_info[name]["current_mode"] = mode_name
-        self.set_replica_of()
+        self.update_replica_of_data()
 
-    def set_replica_of(self):
+    def update_replica_of_data(self):
         for a in self.xrandr_info:
             self.xrandr_info[a]['replica_of'] = []
             for b in self.xrandr_info:
-                if a !=b and is_replica_of(self.xrandr_info[a], self.xrandr_info[b]):
+                if a != b and is_replica_of(self.xrandr_info[a], self.xrandr_info[b]):
                     self.xrandr_info[a]['replica_of'].append(b)
 
     def monitor_selected(self, name):
