@@ -34,6 +34,19 @@ def parse_monitor(line):
     )
 
 
+def is_replica_of(a, b):
+    """Return True if monitor a is a replica of b.
+    
+    Replica means same resolution and position.
+    """
+    return (
+        a["pos_x"] == b["pos_x"]
+        and a["pos_y"] == b["pos_y"]
+        and a["res_x"] == b["res_x"]
+        and a["res_y"] == b["res_y"]
+    )
+
+
 class Window(QObject):
     def __init__(self, ui):
         super().__init__()
@@ -132,6 +145,8 @@ class Window(QObject):
         for mon in self.xrandr_info:
             if mon != name:
                 self.ui.replicaOf.addItem(mon)
+                if is_replica_of(self.xrandr_info[mon], self.xrandr_info[name]):
+                    self.ui.replicaOf.setCurrentText(mon)
 
     def updateScaleLabels(self):
         self.ui.horizontalScaleLabel.setText(f"{self.ui.horizontalScale.value()}%")
