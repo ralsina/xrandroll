@@ -13,7 +13,7 @@ def parse_monitor(line):
     parts = line.split()
     name = parts[0]
     primary = "primary" in parts
-    if '+' in line:  # Is enabled
+    if "+" in line:  # Is enabled
         enabled = True
         res_x, res_y = [p for p in parts if "x" in p][0].split("+")[0].split("x")
         pos_x, pos_y = [p for p in parts if "x" in p][0].split("+")[1:]
@@ -30,7 +30,7 @@ def parse_monitor(line):
         int(h_in_mm),
         int(pos_x),
         int(pos_y),
-        enabled
+        enabled,
     )
 
 
@@ -55,7 +55,14 @@ class Window(QObject):
 
         for name, monitor in self.xrandr_info.items():
             self.ui.screenCombo.addItem(name)
-            mon_item = MonitorItem(0, 0, monitor["res_x"], monitor["res_y"], name=name, primary=monitor['primary'])
+            mon_item = MonitorItem(
+                0,
+                0,
+                monitor["res_x"],
+                monitor["res_y"],
+                name=name,
+                primary=monitor["primary"],
+            )
             mon_item.setPos(monitor["pos_x"], monitor["pos_y"])
             self.scene.addItem(mon_item)
             monitor["item"] = mon_item
@@ -74,9 +81,17 @@ class Window(QObject):
         name = None
         for line in data:
             if line and line[0] not in "S \t":  # Output line
-                name, primary, res_x, res_y, w_in_mm, h_in_mm, pos_x, pos_y, enabled = parse_monitor(
-                    line
-                )
+                (
+                    name,
+                    primary,
+                    res_x,
+                    res_y,
+                    w_in_mm,
+                    h_in_mm,
+                    pos_x,
+                    pos_y,
+                    enabled,
+                ) = parse_monitor(line)
                 self.xrandr_info[name] = dict(
                     primary=primary,
                     res_x=res_x,
@@ -89,30 +104,39 @@ class Window(QObject):
                     current_mode=None,
                     enabled=enabled,
                 )
-            elif line[0] == ' ':  # A mode
+            elif line[0] == " ":  # A mode
                 mode_name = line.strip().split()[0]
-                self.xrandr_info[name]['modes'].append(mode_name)
-                if '*' in line:
-                    print(f'Current mode for {name}: {mode_name}')
-                    self.xrandr_info[name]['current_mode'] = mode_name
-            
+                self.xrandr_info[name]["modes"].append(mode_name)
+                if "*" in line:
+                    print(f"Current mode for {name}: {mode_name}")
+                    self.xrandr_info[name]["current_mode"] = mode_name
+
     def monitor_selected(self, name):
         # Show modes
         self.ui.modes.clear()
-        for mode in self.xrandr_info[name]['modes']:
+        for mode in self.xrandr_info[name]["modes"]:
             self.ui.modes.addItem(mode)
-        self.ui.modes.setCurrentText(self.xrandr_info[name]['current_mode'])
-        mod_x, mod_y = [int(x) for x in self.xrandr_info[name]['current_mode'].split('x')]
-        h_scale = self.xrandr_info[name]['res_x'] / mod_x
-        v_scale = self.xrandr_info[name]['res_y'] / mod_y
+        self.ui.modes.setCurrentText(self.xrandr_info[name]["current_mode"])
+        mod_x, mod_y = [
+            int(x) for x in self.xrandr_info[name]["current_mode"].split("x")
+        ]
+        h_scale = self.xrandr_info[name]["res_x"] / mod_x
+        v_scale = self.xrandr_info[name]["res_y"] / mod_y
         self.ui.horizontalScale.setValue(h_scale * 100)
         self.ui.verticalScale.setValue(v_scale * 100)
-        self.ui.primary.setChecked(self.xrandr_info[name]['primary'])
-        self.ui.enabled.setChecked(self.xrandr_info[name]['enabled'])
+        self.ui.primary.setChecked(self.xrandr_info[name]["primary"])
+        self.ui.enabled.setChecked(self.xrandr_info[name]["enabled"])
+
+        self.ui.replicaOf.clear()
+        self.ui.replicaOf.addItem("None")
+        for mon in self.xrandr_info:
+            if mon != name:
+                self.ui.replicaOf.addItem(mon)
 
     def updateScaleLabels(self):
-        self.ui.horizontalScaleLabel.setText(f'{self.ui.horizontalScale.value()}%')
-        self.ui.verticalScaleLabel.setText(f'{self.ui.verticalScale.value()}%')
+        self.ui.horizontalScaleLabel.setText(f"{self.ui.horizontalScale.value()}%")
+        self.ui.verticalScaleLabel.setText(f"{self.ui.verticalScale.value()}%")
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
