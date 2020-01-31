@@ -10,25 +10,25 @@ class MonitorItem(QGraphicsRectItem, QObject):
         data = kw.pop("data")
         self.name = kw.pop("name")
         self.window = kw.pop("window")
-        super().__init__(*a, **kw)
+        super().__init__(0, 0, 0, 0)
         self.setAcceptedMouseButtons(Qt.LeftButton)
         self.label = QGraphicsTextItem("", self)
         self.update_visuals(data)
 
     def update_visuals(self, data):
-        if data['replica_of']:
+        if data["replica_of"]:
             label_text = f"{self.name} [{','.join(data['replica_of'])}]"
         else:
             label_text = self.name
-        self.setRect(0, 0, data['res_x'], data['res_y'])
-        self.setPos(data['pos_x'], data['pos_y'])
+        self.setRect(0, 0, data["res_x"], data["res_y"])
+        self.setPos(data["pos_x"], data["pos_y"])
         self.label.setPlainText(label_text)
         label_scale = min(
             self.rect().width() / self.label.boundingRect().width(),
             self.rect().height() / self.label.boundingRect().height(),
         )
         self.label.setScale(label_scale)
-        if data['primary']:
+        if data["primary"]:
             self.setBrush(QBrush("#eee8d5", Qt.SolidPattern))
             self.setZValue(1)
         else:
