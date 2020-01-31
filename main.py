@@ -2,7 +2,7 @@ from copy import deepcopy
 import subprocess
 import sys
 
-from PySide2.QtCore import QFile, QObject
+from PySide2.QtCore import QFile, QObject, Slot, SIGNAL
 from PySide2.QtUiTools import QUiLoader
 from PySide2.QtWidgets import QApplication, QGraphicsScene
 
@@ -73,14 +73,25 @@ class Window(QObject):
                 0,
                 monitor["res_x"],
                 monitor["res_y"],
+                data=monitor,
+                window=self,
                 name=name,
-                replica_of=monitor['replica_of'],
-                primary=monitor["primary"],
             )
             mon_item.setPos(monitor["pos_x"], monitor["pos_y"])
             self.scene.addItem(mon_item)
             monitor["item"] = mon_item
         self.adjust_view()
+
+    @Slot()
+    def monitor_moved(self):
+        "Update xrandr_info with new monitor positions"
+        for _, mon in self.xrandr_info.items():
+            item = mon['item']
+            mon['pos_x'] = item.x()
+            mon['pos_y'] = item.y()
+        self.set_replica_of()
+        for _, mon in self.xrandr_info.items():
+            mon['item'].update_visuals(mon)
 
     def adjust_view(self):
         self.ui.sceneView.ensureVisible(self.scene.sceneRect(), 100, 100)
@@ -125,8 +136,11 @@ class Window(QObject):
                 if "*" in line:
                     print(f"Current mode for {name}: {mode_name}")
                     self.xrandr_info[name]["current_mode"] = mode_name
+        self.set_replica_of()
 
+    def set_replica_of(self):
         for a in self.xrandr_info:
+            self.xrandr_info[a]['replica_of'] = []
             for b in self.xrandr_info:
                 if a !=b and is_replica_of(self.xrandr_info[a], self.xrandr_info[b]):
                     self.xrandr_info[a]['replica_of'].append(b)

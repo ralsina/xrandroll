@@ -1,31 +1,37 @@
-from PySide2.QtCore import Qt
+from PySide2.QtCore import Qt, Signal, QObject
 from PySide2.QtWidgets import QGraphicsRectItem, QGraphicsTextItem
 from PySide2.QtGui import QBrush, QPen
 
 
-class MonitorItem(QGraphicsRectItem):
+class MonitorItem(QGraphicsRectItem, QObject):
     z = 0
+
+
     def __init__(self, *a, **kw):
-        primary = kw.pop('primary')
-        name = kw.pop('name')
-        replica_of=kw.pop('replica_of')
+        data = kw.pop("data")
+        self.name = kw.pop("name")
+        self.window = kw.pop("window")
         super().__init__(*a, **kw)
         self.setAcceptedMouseButtons(Qt.LeftButton)
-        if replica_of:
-            label_text = f"{name} [{','.join(replica_of)}]"
+        self.label = QGraphicsTextItem("", self)
+        self.update_visuals(data)
+
+    def update_visuals(self, data):
+        if data['replica_of']:
+            label_text = f"{self.name} [{','.join(data['replica_of'])}]"
         else:
-            label_text = name
-        self.label = QGraphicsTextItem(label_text, self)
+            label_text = self.name
+        self.label.setPlainText(label_text)
         label_scale = min(
             self.rect().width() / self.label.boundingRect().width(),
             self.rect().height() / self.label.boundingRect().height(),
         )
         self.label.setScale(label_scale)
-        if primary:
-            self.setBrush(QBrush('#eee8d5', Qt.SolidPattern))
+        if data['primary']:
+            self.setBrush(QBrush("#eee8d5", Qt.SolidPattern))
             self.setZValue(1)
         else:
-            self.setBrush(QBrush('white', Qt.SolidPattern))
+            self.setBrush(QBrush("white", Qt.SolidPattern))
             self.setZValue(self.z)
             self.z -= 1
 
@@ -35,6 +41,7 @@ class MonitorItem(QGraphicsRectItem):
 
     def mouseReleaseEvent(self, event):
         self.setCursor(Qt.OpenHandCursor)
+        self.window.monitor_moved()
 
     def mouseMoveEvent(self, event):
         view = event.widget().parent()
