@@ -88,6 +88,7 @@ class Window(QObject):
         ui.show()
         self.ui.setWindowTitle("Display Configuration")
         self.ui.screenCombo.currentTextChanged.connect(self.monitor_selected)
+        self.ui.replicaOf.currentTextChanged.connect(self.replica_changed)
         self.ui.orientationCombo.currentIndexChanged.connect(self.orientation_changed)
         self.xrandr_info = {}
         self.get_xrandr_info()
@@ -100,6 +101,12 @@ class Window(QObject):
         self.ui.okButton.clicked.connect(self.do_ok)
         self.ui.resetButton.clicked.connect(self.do_reset)
         self.ui.cancelButton.clicked.connect(self.ui.reject)
+
+    def replica_changed(self):
+        mon = self.ui.screenCombo.currentText()
+        replicate = self.ui.replicaOf.currentText()
+
+        print(f'Making {mon} a replica of {replicate}')
 
     def do_reset(self):
         for n in self.xrandr_info:
