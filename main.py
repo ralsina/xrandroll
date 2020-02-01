@@ -5,7 +5,7 @@ import sys
 
 from PySide2.QtCore import QFile, QObject
 from PySide2.QtUiTools import QUiLoader
-from PySide2.QtWidgets import QApplication, QGraphicsScene
+from PySide2.QtWidgets import QApplication, QGraphicsScene, QLabel
 
 from monitor_item import MonitorItem
 
@@ -103,6 +103,10 @@ class Window(QObject):
         self.ui.cancelButton.clicked.connect(self.ui.reject)
         self.ui.scaleModeCombo.currentTextChanged.connect(self.scale_mode_changed)
 
+        self.pos_label = QLabel(self.ui.sceneView)
+        self.pos_label.setText("FOOOOO")
+        self.pos_label.move(0, 0)
+
     def scale_mode_changed(self):
         mon = self.ui.screenCombo.currentText()
         scale_mode = self.ui.scaleModeCombo.currentText()
@@ -119,8 +123,8 @@ class Window(QObject):
         elif scale_mode == "Disabled (1x1)":
             self.ui.verticalScale.setEnabled(False)
             self.ui.horizontalScale.setEnabled(False)
-            self.ui.horizontalScale.setValue(100)
-            self.ui.verticalScale.setValue(100)
+            self.ui.horizontalScale.setValue(1000)
+            self.ui.verticalScale.setValue(1000)
             try:
                 self.ui.horizontalScale.valueChanged.disconnect(
                     self.ui.verticalScale.setValue
@@ -156,8 +160,8 @@ class Window(QObject):
                 pass
             self.ui.horizontalScale.setEnabled(False)
             self.ui.verticalScale.setEnabled(False)
-            self.ui.horizontalScale.setValue(prim_density_x / dens_x * 100)
-            self.ui.verticalScale.setValue(prim_density_y / dens_y * 100)
+            self.ui.horizontalScale.setValue(prim_density_x / dens_x * 1000)
+            self.ui.verticalScale.setValue(prim_density_y / dens_y * 1000)
 
         elif scale_mode == "Manual, same in both dimensions":
             self.ui.horizontalScale.setEnabled(True)
@@ -169,8 +173,8 @@ class Window(QObject):
         mon = self.ui.screenCombo.currentText()
         replicate = self.ui.replicaOf.currentText()
         print(f"Making {mon} a replica of {replicate}")
-        if replicate == 'None':
-            print('TODO: make things non-replicas')
+        if replicate in ("None", '', None):
+            print("TODO: make things non-replicas")
             return
         mon = self.xrandr_info[mon]
         replicate = self.xrandr_info[replicate]
@@ -184,8 +188,19 @@ class Window(QObject):
         if replicate["current_mode"] in mon["modes"]:
             mon["current_mode"] = replicate["current_mode"]
         else:
-            print("TODO: replicas when the modes don't match")
-        mon['item'].update_visuals(mon)
+            # Keep the current mode, and change scaling so it
+            # has the same effective size as the desired mode
+            mod_x, mod_y = [int(x) for x in mon["current_mode"].split('x')]
+            target_x, target_y =[replicate[x] for x in ["res_x", "res_y"]]
+            scale_x = 1000 * target_x / mod_x
+            scale_y = 1000 * target_y / mod_y
+            breakpoint()
+            print(target_x, target_y, mod_x, mod_y)
+            print(scale_x, scale_y)
+            self.ui.horizontalScale.setValue(scale_x)
+            self.ui.verticalScale.setValue(scale_y)
+
+        mon["item"].update_visuals(mon)
 
     def do_reset(self):
         for n in self.xrandr_info:
@@ -199,7 +214,7 @@ class Window(QObject):
     def do_apply(self):
         cli = gen_xrandr_from_data(self.xrandr_info)
         print(cli)
-        subprocess.check_call(shlex.split(cli))
+        # subprocess.check_call(shlex.split(cli))
 
     def fill_ui(self):
         """Load data from xrandr and setup the whole thing."""
@@ -233,17 +248,17 @@ class Window(QObject):
         # use resolution via scaling
         if self.xrandr_info[mon]["orientation"] in (0, 2):
             self.xrandr_info[mon]["res_x"] = int(
-                int(mode_x) * self.ui.horizontalScale.value() / 100
+                int(mode_x) * self.ui.horizontalScale.value() / 1000
             )
             self.xrandr_info[mon]["res_y"] = int(
-                int(mode_y) * self.ui.verticalScale.value() / 100
+                int(mode_y) * self.ui.verticalScale.value() / 1000
             )
         else:
             self.xrandr_info[mon]["res_x"] = int(
-                int(mode_y) * self.ui.horizontalScale.value() / 100
+                int(mode_y) * self.ui.horizontalScale.value() / 1000
             )
             self.xrandr_info[mon]["res_y"] = int(
-                int(mode_x) * self.ui.verticalScale.value() / 100
+                int(mode_x) * self.ui.verticalScale.value() / 1000
             )
         self.xrandr_info[mon]["item"].update_visuals(self.xrandr_info[mon])
 
@@ -332,8 +347,8 @@ class Window(QObject):
         else:
             h_scale = self.xrandr_info[name]["res_y"] / mod_x
             v_scale = self.xrandr_info[name]["res_x"] / mod_y
-        self.ui.horizontalScale.setValue(h_scale * 100)
-        self.ui.verticalScale.setValue(v_scale * 100)
+        self.ui.horizontalScale.setValue(h_scale * 1000)
+        self.ui.verticalScale.setValue(v_scale * 1000)
         self.ui.primary.setChecked(self.xrandr_info[name]["primary"])
         self.ui.enabled.setChecked(self.xrandr_info[name]["enabled"])
         self.ui.orientationCombo.setCurrentIndex(self.xrandr_info[name]["orientation"])
@@ -348,8 +363,8 @@ class Window(QObject):
         self.ui.modes.blockSignals(False)
 
     def scale_changed(self):
-        self.ui.horizontalScaleLabel.setText(f"{self.ui.horizontalScale.value()}%")
-        self.ui.verticalScaleLabel.setText(f"{self.ui.verticalScale.value()}%")
+        self.ui.horizontalScaleLabel.setText(f"{int(self.ui.horizontalScale.value()/10)}%")
+        self.ui.verticalScaleLabel.setText(f"{int(self.ui.verticalScale.value()/10)}%")
         self.mode_changed()  # Not really, but it's the same thing
 
 
