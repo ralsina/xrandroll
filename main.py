@@ -106,12 +106,69 @@ class Window(QObject):
     def scale_mode_changed(self):
         mon = self.ui.screenCombo.currentText()
         scale_mode = self.ui.scaleModeCombo.currentText()
-        print(f'Set {mon} scale mode to {scale_mode}')
+        print(f"Set {mon} scale mode to {scale_mode}")
+        if scale_mode == "Manual":
+            self.ui.horizontalScale.setEnabled(True)
+            self.ui.verticalScale.setEnabled(True)
+            try:
+                self.ui.horizontalScale.valueChanged.disconnect(
+                    self.ui.verticalScale.setValue
+                )
+            except RuntimeError:  # Not connected
+                pass
+        elif scale_mode == "Disabled (1x1)":
+            self.ui.verticalScale.setEnabled(False)
+            self.ui.horizontalScale.setEnabled(False)
+            self.ui.horizontalScale.setValue(100)
+            self.ui.verticalScale.setValue(100)
+            try:
+                self.ui.horizontalScale.valueChanged.disconnect(
+                    self.ui.verticalScale.setValue
+                )
+            except RuntimeError:  # Not connected
+                pass
+        elif scale_mode == "Automatic: physical dimensions":
+            # Calculate scale factors so that the logical pixels will be the same
+            # size as in the primary window
+            if self.ui.primary.isChecked():
+                print("Has no effect on primary display.")
+                return
+
+            # Find the primary monitor
+            primary = [k for k in self.xrandr_info if self.xrandr_info[k]["primary"]]
+            if not primary:
+                print("Oops, no primary!")
+                return
+            primary = self.xrandr_info[primary[0]]
+            monitor = self.xrandr_info[mon]
+
+            prim_density_x = primary["res_x"] / primary["w_in_mm"]
+            prim_density_y = primary["res_y"] / primary["h_in_mm"]
+
+            dens_x = monitor["res_x"] / monitor["w_in_mm"]
+            dens_y = monitor["res_y"] / monitor["h_in_mm"]
+
+            try:
+                self.ui.horizontalScale.valueChanged.disconnect(
+                    self.ui.verticalScale.setValue
+                )
+            except RuntimeError:  # Not connected
+                pass
+            self.ui.horizontalScale.setEnabled(False)
+            self.ui.verticalScale.setEnabled(False)
+            self.ui.horizontalScale.setValue(prim_density_x / dens_x * 100)
+            self.ui.verticalScale.setValue(prim_density_y / dens_y * 100)
+
+        elif scale_mode == "Manual, same in both dimensions":
+            self.ui.horizontalScale.setEnabled(True)
+            self.ui.verticalScale.setEnabled(False)
+            self.ui.horizontalScale.valueChanged.connect(self.ui.verticalScale.setValue)
+            self.ui.verticalScale.setValue(self.ui.horizontalScale.value())
 
     def replica_changed(self):
         mon = self.ui.screenCombo.currentText()
         replicate = self.ui.replicaOf.currentText()
-        print(f'Making {mon} a replica of {replicate}')
+        print(f"Making {mon} a replica of {replicate}")
 
     def do_reset(self):
         for n in self.xrandr_info:
