@@ -41,13 +41,16 @@ class MonitorItem(QGraphicsRectItem, QObject):
             self.rect().height() / self.label.boundingRect().height(),
         )
         self.label.setScale(label_scale)
-        if data["primary"]:
-            self.setBrush(QBrush("#eee8d5", Qt.SolidPattern))
-            self.setZValue(1)
+        if data["enabled"]:
+            if data["primary"]:
+                self.setBrush(QBrush("#eee8d5", Qt.SolidPattern))
+                self.setZValue(1)
+            else:
+                self.setBrush(QBrush("white", Qt.SolidPattern))
+                self.setZValue(self.z)
+                self.z -= 1
         else:
-            self.setBrush(QBrush("white", Qt.SolidPattern))
-            self.setZValue(self.z)
-            self.z -= 1
+            self.setBrush(QBrush("#010101", Qt.FDiagPattern))
 
     def mousePressEvent(self, event):
         self.window.pos_label.show()

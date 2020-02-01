@@ -16,19 +16,20 @@ def gen_xrandr_from_data(data):
     cli = ["xrandr"]
     for name, mon in data.items():
         cli.append(f"--output {name}")
-        cli.append(f'--pos {int(mon["pos_x"])}x{int(mon["pos_y"])}')
-        cli.append(f'--mode {mon["current_mode"]}')
-        mod_x, mod_y = [int(n) for n in mon["current_mode"].split("x")]
-        if mon["orientation"] in (1, 3):
-            mod_x, mod_y = mod_y, mod_x
-        cli.append(f'--scale {mon["res_x"]/mod_x}x{mon["res_y"]/mod_y}')
-        cli.append(
-            f"--rotate {['normal', 'left', 'inverted', 'right'][mon['orientation']]}"
-        )
-        if mon["primary"]:
-            cli.append("--primary")
         if not mon["enabled"]:
             cli.append("--off")
+        else:
+            cli.append(f'--pos {int(mon["pos_x"])}x{int(mon["pos_y"])}')
+            cli.append(f'--mode {mon["current_mode"]}')
+            mod_x, mod_y = [int(n) for n in mon["current_mode"].split("x")]
+            if mon["orientation"] in (1, 3):
+                mod_x, mod_y = mod_y, mod_x
+            cli.append(f'--scale {mon["res_x"]/mod_x}x{mon["res_y"]/mod_y}')
+            cli.append(
+                f"--rotate {['normal', 'left', 'inverted', 'right'][mon['orientation']]}"
+            )
+            if mon["primary"]:
+                cli.append("--primary")
 
     return " ".join(cli)
 
@@ -104,10 +105,19 @@ class Window(QObject):
         self.ui.cancelButton.clicked.connect(self.ui.reject)
         self.ui.scaleModeCombo.currentTextChanged.connect(self.scale_mode_changed)
         self.ui.primary.stateChanged.connect(self.primary_changed)
+        self.ui.enabled.stateChanged.connect(self.enabled_changed)
 
         self.pos_label = QLabel(self.ui.sceneView)
         self.pos_label.setText("FOOOOO")
         self.pos_label.move(5, 5)
+
+    def enabled_changed(self):
+        mon = self.ui.screenCombo.currentText()
+        enabled = self.ui.enabled.isChecked()
+        print(f'Setting {mon} enabled status to {enabled}')
+        monitor = self.xrandr_info[mon]
+        monitor['enabled'] = enabled
+        monitor["item"].update_visuals(monitor)
 
     def primary_changed(self):
         mon = self.ui.screenCombo.currentText()
