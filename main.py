@@ -263,7 +263,7 @@ class Window(QObject):
         self.xrandr_info[mon]["item"].update_visuals(self.xrandr_info[mon])
 
     def show_pos(self, x, y):
-        self.pos_label.setText(f'{x},{y}')
+        self.pos_label.setText(f"{x},{y}")
         self.pos_label.resize(self.pos_label.sizeHint())
 
     def monitor_moved(self):
