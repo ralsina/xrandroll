@@ -103,10 +103,24 @@ class Window(QObject):
         self.ui.resetButton.clicked.connect(self.do_reset)
         self.ui.cancelButton.clicked.connect(self.ui.reject)
         self.ui.scaleModeCombo.currentTextChanged.connect(self.scale_mode_changed)
+        self.ui.primary.stateChanged.connect(self.primary_changed)
 
         self.pos_label = QLabel(self.ui.sceneView)
         self.pos_label.setText("FOOOOO")
         self.pos_label.move(5, 5)
+
+    def primary_changed(self):
+        mon = self.ui.screenCombo.currentText()
+        primary = self.ui.primary.isChecked()
+
+        # Update visuals on all monitos
+        for name, monitor in self.xrandr_info.items():
+            if name == mon:
+                monitor["primary"] = primary
+            else:
+                if primary:  # There can only be one primary
+                    monitor["primary"] = False
+            monitor["item"].update_visuals(monitor)
 
     def scale_mode_changed(self):
         mon = self.ui.screenCombo.currentText()
@@ -373,6 +387,7 @@ class Window(QObject):
         )
         self.ui.verticalScaleLabel.setText(f"{int(self.ui.verticalScale.value()/10)}%")
         self.mode_changed()  # Not really, but it's the same thing
+
 
 def main():
     app = QApplication(sys.argv)
