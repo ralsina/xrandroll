@@ -25,17 +25,13 @@ class MonitorItem(QGraphicsRectItem, QObject):
         if data["orientation"] in (0, 2):
             self.setRect(0, 0, data["res_x"], data["res_y"])
             if data["orientation"] == 0:
-                self.bottom_edge.setRect(
-                    0, data["res_y"] - 50, data["res_x"], 50
-                )
+                self.bottom_edge.setRect(0, data["res_y"] - 50, data["res_x"], 50)
             if data["orientation"] == 2:
                 self.bottom_edge.setRect(0, 0, data["res_x"], 50)
         else:
             self.setRect(0, 0, data["res_y"], data["res_x"])
             if data["orientation"] == 1:
-                self.bottom_edge.setRect(
-                    data["res_y"] - 50, 0, 50, data["res_x"]
-                )
+                self.bottom_edge.setRect(data["res_y"] - 50, 0, 50, data["res_x"])
             if data["orientation"] == 3:
                 self.bottom_edge.setRect(0, 0, 50, data["res_x"])
         self.setPos(data["pos_x"], data["pos_y"])
@@ -54,6 +50,7 @@ class MonitorItem(QGraphicsRectItem, QObject):
             self.z -= 1
 
     def mousePressEvent(self, event):
+        self.window.pos_label.show()
         self.setCursor(Qt.ClosedHandCursor)
         self.orig_pos = self.pos()
         self.window.ui.screenCombo.setCurrentText(self.name)
@@ -61,6 +58,7 @@ class MonitorItem(QGraphicsRectItem, QObject):
     def mouseReleaseEvent(self, event):
         self.setCursor(Qt.OpenHandCursor)
         self.window.monitor_moved()
+        self.window.pos_label.hide()
 
     def mouseMoveEvent(self, event):
         view = event.widget().parent()
@@ -69,3 +67,4 @@ class MonitorItem(QGraphicsRectItem, QObject):
         self.setPos(
             view.mapToScene(view.mapFromScene(self.orig_pos) + current_pos - click_pos)
         )
+        self.window.show_pos(int(self.pos().x()), int(self.pos().y()))

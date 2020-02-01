@@ -105,7 +105,7 @@ class Window(QObject):
 
         self.pos_label = QLabel(self.ui.sceneView)
         self.pos_label.setText("FOOOOO")
-        self.pos_label.move(0, 0)
+        self.pos_label.move(5, 5)
 
     def scale_mode_changed(self):
         mon = self.ui.screenCombo.currentText()
@@ -173,7 +173,7 @@ class Window(QObject):
         mon = self.ui.screenCombo.currentText()
         replicate = self.ui.replicaOf.currentText()
         print(f"Making {mon} a replica of {replicate}")
-        if replicate in ("None", '', None):
+        if replicate in ("None", "", None):
             print("TODO: make things non-replicas")
             return
         mon = self.xrandr_info[mon]
@@ -190,8 +190,8 @@ class Window(QObject):
         else:
             # Keep the current mode, and change scaling so it
             # has the same effective size as the desired mode
-            mod_x, mod_y = [int(x) for x in mon["current_mode"].split('x')]
-            target_x, target_y =[replicate[x] for x in ["res_x", "res_y"]]
+            mod_x, mod_y = [int(x) for x in mon["current_mode"].split("x")]
+            target_x, target_y = [replicate[x] for x in ["res_x", "res_y"]]
             scale_x = 1000 * target_x / mod_x
             scale_y = 1000 * target_y / mod_y
             breakpoint()
@@ -261,6 +261,10 @@ class Window(QObject):
                 int(mode_x) * self.ui.verticalScale.value() / 1000
             )
         self.xrandr_info[mon]["item"].update_visuals(self.xrandr_info[mon])
+
+    def show_pos(self, x, y):
+        self.pos_label.setText(f'{x},{y}')
+        self.pos_label.resize(self.pos_label.sizeHint())
 
     def monitor_moved(self):
         "Update xrandr_info with new monitor positions"
@@ -363,7 +367,9 @@ class Window(QObject):
         self.ui.modes.blockSignals(False)
 
     def scale_changed(self):
-        self.ui.horizontalScaleLabel.setText(f"{int(self.ui.horizontalScale.value()/10)}%")
+        self.ui.horizontalScaleLabel.setText(
+            f"{int(self.ui.horizontalScale.value()/10)}%"
+        )
         self.ui.verticalScaleLabel.setText(f"{int(self.ui.verticalScale.value()/10)}%")
         self.mode_changed()  # Not really, but it's the same thing
 
