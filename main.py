@@ -169,6 +169,23 @@ class Window(QObject):
         mon = self.ui.screenCombo.currentText()
         replicate = self.ui.replicaOf.currentText()
         print(f"Making {mon} a replica of {replicate}")
+        if replicate == 'None':
+            print('TODO: make things non-replicas')
+            return
+        mon = self.xrandr_info[mon]
+        replicate = self.xrandr_info[replicate]
+
+        # Making a replica implies:
+        # Set the same position
+        mon["pos_x"] = replicate["pos_x"]
+        mon["pos_y"] = replicate["pos_y"]
+
+        # Set the same mode if possible
+        if replicate["current_mode"] in mon["modes"]:
+            mon["current_mode"] = replicate["current_mode"]
+        else:
+            print("TODO: replicas when the modes don't match")
+        mon['item'].update_visuals(mon)
 
     def do_reset(self):
         for n in self.xrandr_info:
