@@ -1,13 +1,14 @@
-from copy import deepcopy
+import os
 import shlex
 import subprocess
 import sys
+from copy import deepcopy
 
 from PySide2.QtCore import QFile, QObject
 from PySide2.QtUiTools import QUiLoader
 from PySide2.QtWidgets import QApplication, QGraphicsScene, QLabel
 
-from monitor_item import MonitorItem
+from .monitor_item import MonitorItem
 
 
 def gen_xrandr_from_data(data):
@@ -373,14 +374,17 @@ class Window(QObject):
         self.ui.verticalScaleLabel.setText(f"{int(self.ui.verticalScale.value()/10)}%")
         self.mode_changed()  # Not really, but it's the same thing
 
-
-if __name__ == "__main__":
+def main():
     app = QApplication(sys.argv)
 
-    ui_file = QFile("main.ui")
+    ui_file = QFile(os.path.join(os.path.dirname(__file__), "main.ui"))
     ui_file.open(QFile.ReadOnly)
 
     loader = QUiLoader()
     window = Window(loader.load(ui_file))
 
     sys.exit(app.exec_())
+
+
+if __name__ == "__main__":
+    main()

@@ -14,7 +14,7 @@ So I went and wrote one.
 
 ## To try:
 
-If you have PySide2: `python main.py` in the folder where main.py is located.
+If you have PySide2: `python -m xrandroll` in the folder where main.py is located.
 
 ## TODO:
 
