@@ -101,11 +101,16 @@ class Window(QObject):
         self.ui.okButton.clicked.connect(self.do_ok)
         self.ui.resetButton.clicked.connect(self.do_reset)
         self.ui.cancelButton.clicked.connect(self.ui.reject)
+        self.ui.scaleModeCombo.currentTextChanged.connect(self.scale_mode_changed)
+
+    def scale_mode_changed(self):
+        mon = self.ui.screenCombo.currentText()
+        scale_mode = self.ui.scaleModeCombo.currentText()
+        print(f'Set {mon} scale mode to {scale_mode}')
 
     def replica_changed(self):
         mon = self.ui.screenCombo.currentText()
         replicate = self.ui.replicaOf.currentText()
-
         print(f'Making {mon} a replica of {replicate}')
 
     def do_reset(self):

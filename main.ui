@@ -199,6 +199,11 @@
        </item>
        <item>
         <property name="text">
+         <string>Disabled (1x1)</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
          <string>Automatic: physical dimensions</string>
         </property>
        </item>
