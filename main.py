@@ -18,10 +18,12 @@ def gen_xrandr_from_data(data):
         cli.append(f'--pos {int(mon["pos_x"])}x{int(mon["pos_y"])}')
         cli.append(f'--mode {mon["current_mode"]}')
         mod_x, mod_y = [int(n) for n in mon["current_mode"].split("x")]
-        if mon["orientation"] in (1,3):
+        if mon["orientation"] in (1, 3):
             mod_x, mod_y = mod_y, mod_x
         cli.append(f'--scale {mon["res_x"]/mod_x}x{mon["res_y"]/mod_y}')
-        cli.append(f"--rotate {['normal', 'left', 'inverted', 'right'][mon['orientation']]}")
+        cli.append(
+            f"--rotate {['normal', 'left', 'inverted', 'right'][mon['orientation']]}"
+        )
         if mon["primary"]:
             cli.append("--primary")
         if not mon["enabled"]:
@@ -43,13 +45,13 @@ def parse_monitor(line):
         enabled = False
         res_x = res_y = pos_x = pos_y = w_in_mm = h_in_mm = 0
 
-    left_side = line.split(' (normal left inverted ')[0]
+    left_side = line.split(" (normal left inverted ")[0]
     orientation = 0
-    if 'left' in left_side:
+    if "left" in left_side:
         orientation = 1
-    elif 'inverted' in left_side:
+    elif "inverted" in left_side:
         orientation = 2
-    elif 'right' in left_side:
+    elif "right" in left_side:
         orientation = 3
 
     return (
@@ -84,7 +86,7 @@ class Window(QObject):
         super().__init__()
         self.ui = ui
         ui.show()
-        self.ui.setWindowTitle('Display Configuration')
+        self.ui.setWindowTitle("Display Configuration")
         self.ui.screenCombo.currentTextChanged.connect(self.monitor_selected)
         self.ui.orientationCombo.currentIndexChanged.connect(self.orientation_changed)
         self.xrandr_info = {}
@@ -143,7 +145,7 @@ class Window(QObject):
         self.xrandr_info[mon]["current_mode"] = mode
         mode_x, mode_y = mode.split("x")
         # use resolution via scaling
-        if self.xrandr_info[mon]["orientation"] in (0,2): 
+        if self.xrandr_info[mon]["orientation"] in (0, 2):
             self.xrandr_info[mon]["res_x"] = int(
                 int(mode_x) * self.ui.horizontalScale.value() / 100
             )
@@ -238,7 +240,7 @@ class Window(QObject):
         mod_x, mod_y = [
             int(x) for x in self.xrandr_info[name]["current_mode"].split("x")
         ]
-        if self.xrandr_info[name]["orientation"] in (0,2):
+        if self.xrandr_info[name]["orientation"] in (0, 2):
             h_scale = self.xrandr_info[name]["res_x"] / mod_x
             v_scale = self.xrandr_info[name]["res_y"] / mod_y
         else:
