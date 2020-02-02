@@ -366,16 +366,20 @@ class Window(QObject):
         self.ui.modes.clear()
         for mode in self.xrandr_info[name]["modes"]:
             self.ui.modes.addItem(mode)
-        self.ui.modes.setCurrentText(self.xrandr_info[name]["current_mode"])
-        mod_x, mod_y = [
-            int(x) for x in self.xrandr_info[name]["current_mode"].split("x")
-        ]
-        if self.xrandr_info[name]["orientation"] in (0, 2):
-            h_scale = self.xrandr_info[name]["res_x"] / mod_x
-            v_scale = self.xrandr_info[name]["res_y"] / mod_y
+        if self.xrandr_info[name]["current_mode"] is None:  # Happens with turned off monitors
+            self.xrandr_info[name]['enabled'] = False
+            h_scale = v_scale = 1
         else:
-            h_scale = self.xrandr_info[name]["res_y"] / mod_x
-            v_scale = self.xrandr_info[name]["res_x"] / mod_y
+            self.ui.modes.setCurrentText(self.xrandr_info[name]["current_mode"])
+            mod_x, mod_y = [
+                int(x) for x in self.xrandr_info[name]["current_mode"].split("x")
+            ]
+            if self.xrandr_info[name]["orientation"] in (0, 2):
+                h_scale = self.xrandr_info[name]["res_x"] / mod_x
+                v_scale = self.xrandr_info[name]["res_y"] / mod_y
+            else:
+                h_scale = self.xrandr_info[name]["res_y"] / mod_x
+                v_scale = self.xrandr_info[name]["res_x"] / mod_y
         self.ui.horizontalScale.setValue(h_scale * 1000)
         self.ui.verticalScale.setValue(v_scale * 1000)
         self.ui.primary.setChecked(self.xrandr_info[name]["primary"])
