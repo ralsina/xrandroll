@@ -5,6 +5,7 @@ description = "A powertool to configure your display"
 authors = ["Roberto Alsina <roberto.alsina@gmail.com>"]
 license = "MIT"
 readme = "README.md"
+homepage = "https://github.com/ralsina/xrandroll"
 packages = [
     { include = "xrandroll" }
 ]
