@@ -108,15 +108,14 @@ class Window(QObject):
         self.ui.enabled.stateChanged.connect(self.enabled_changed)
 
         self.pos_label = QLabel(self.ui.sceneView)
-        self.pos_label.setText("FOOOOO")
         self.pos_label.move(5, 5)
 
     def enabled_changed(self):
         mon = self.ui.screenCombo.currentText()
         enabled = self.ui.enabled.isChecked()
-        print(f'Setting {mon} enabled status to {enabled}')
+        print(f"Setting {mon} enabled status to {enabled}")
         monitor = self.xrandr_info[mon]
-        monitor['enabled'] = enabled
+        monitor["enabled"] = enabled
         monitor["item"].update_visuals(monitor)
 
     def primary_changed(self):
@@ -366,8 +365,10 @@ class Window(QObject):
         self.ui.modes.clear()
         for mode in self.xrandr_info[name]["modes"]:
             self.ui.modes.addItem(mode)
-        if self.xrandr_info[name]["current_mode"] is None:  # Happens with turned off monitors
-            self.xrandr_info[name]['enabled'] = False
+        if (
+            self.xrandr_info[name]["current_mode"] is None
+        ):  # Happens with turned off monitors
+            self.xrandr_info[name]["enabled"] = False
             h_scale = v_scale = 1
         else:
             self.ui.modes.setCurrentText(self.xrandr_info[name]["current_mode"])
