@@ -1,4 +1,4 @@
-# RandRoll
+# XRandRoll
 
 None of the existing display configuration tools does what I think is "the right thing".
 So I went and wrote one.
