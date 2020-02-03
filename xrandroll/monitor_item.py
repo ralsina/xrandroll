@@ -50,6 +50,11 @@ class MonitorItem(QGraphicsRectItem, QObject):
             self.setBrush(QBrush("#f1f1f1", Qt.SolidPattern))
             self.setZValue(-1000)
 
+        if not data["current_mode"]:  # Disconnected or disabled
+            self.hide()
+        else:
+            self.show()
+
     def mousePressEvent(self, event):
         self.window.pos_label.show()
         self.setCursor(Qt.ClosedHandCursor)
