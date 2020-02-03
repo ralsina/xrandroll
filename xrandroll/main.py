@@ -117,6 +117,10 @@ class Window(QObject):
         print(f"Setting {mon} enabled status to {enabled}")
         monitor = self.xrandr_info[mon]
         monitor["enabled"] = enabled
+        if enabled and not monitor["current_mode"]:
+            # Choose a mode
+            self.ui.modes.setCurrentIndex(0)
+            self.mode_changed()
         monitor["item"].update_visuals(monitor)
 
     def primary_changed(self):
