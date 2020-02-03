@@ -5,3 +5,7 @@
     - id: check-toml
     - id: flake8
     - id: debug-statements
+-   repo: https://github.com/ambv/black
+    rev: stable
+    hooks:
+    - id: black
