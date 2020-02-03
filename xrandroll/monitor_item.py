@@ -20,13 +20,13 @@ class MonitorItem(QGraphicsRectItem, QObject):
     def update_visuals(self, data):
         self.setRect(0, 0, data["res_x"], data["res_y"])
         self.setPos(data["pos_x"], data["pos_y"])
-        if data['orientation'] == 0:
-            self.bottom_edge.setRect(0, data['res_y'] - 50, data["res_x"], 50)
-        elif data['orientation'] == 1:
-            self.bottom_edge.setRect(data['res_x'] - 50, 0, 50, data["res_y"])
-        elif data['orientation'] == 2:
+        if data["orientation"] == 0:
+            self.bottom_edge.setRect(0, data["res_y"] - 50, data["res_x"], 50)
+        elif data["orientation"] == 1:
+            self.bottom_edge.setRect(data["res_x"] - 50, 0, 50, data["res_y"])
+        elif data["orientation"] == 2:
             self.bottom_edge.setRect(0, 0, data["res_x"], 50)
-        elif data['orientation'] == 3:
+        elif data["orientation"] == 3:
             self.bottom_edge.setRect(0, 0, 50, data["res_y"])
         if data["replica_of"]:
             label_text = f"{self.name} [{','.join(data['replica_of'])}]"

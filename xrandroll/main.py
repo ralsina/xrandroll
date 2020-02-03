@@ -80,7 +80,7 @@ def is_replica_of(a, b):
         and a["pos_y"] == b["pos_y"]
         and a["res_x"] == b["res_x"]
         and a["res_y"] == b["res_y"]
-        and b['enabled']
+        and b["enabled"]
     )
 
 
