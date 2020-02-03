@@ -255,10 +255,8 @@ class Window(QObject):
         self.scale_changed()  # Trigger scale labels update
 
     def detect_scaling_mode(self, monitor):
-        """Given a monitor's data, try to guess what scaling 
+        """Given a monitor's data, try to guess what scaling
         mode it's using."""
-        
-         
 
     def choose_a_monitor(self):
         """Choose what monitor to select by default.
@@ -269,9 +267,9 @@ class Window(QObject):
 
         candidate = None
         for name, mon in self.xrandr_info.items():
-            if not mon['enabled']:
+            if not mon["enabled"]:
                 continue
-            if mon['primary']:
+            if mon["primary"]:
                 return name
             candidate = name
         return candidate
