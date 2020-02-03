@@ -250,8 +250,25 @@ class Window(QObject):
             # mon_item.setPos(monitor["pos_x"], monitor["pos_y"])
             self.scene.addItem(mon_item)
             monitor["item"] = mon_item
+        self.ui.screenCombo.setCurrentText(self.choose_a_monitor())
         self.adjust_view()
         self.scale_changed()  # Trigger scale labels update
+
+    def choose_a_monitor(self):
+        """Choose what monitor to select by default.
+
+        * Not disabled
+        * Primary, if possible
+        """
+
+        candidate = None
+        for name, mon in self.xrandr_info.items():
+            if not mon['enabled']:
+                continue
+            if mon['primary']:
+                return name
+            candidate = name
+        return candidate
 
     def orientation_changed(self):
         mon = self.ui.screenCombo.currentText()
