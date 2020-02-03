@@ -18,23 +18,20 @@ class MonitorItem(QGraphicsRectItem, QObject):
         self.update_visuals(data)
 
     def update_visuals(self, data):
+        self.setRect(0, 0, data["res_x"], data["res_y"])
+        self.setPos(data["pos_x"], data["pos_y"])
+        if data['orientation'] == 0:
+            self.bottom_edge.setRect(0, data['res_y'] - 50, data["res_x"], 50)
+        elif data['orientation'] == 1:
+            self.bottom_edge.setRect(data['res_x'] - 50, 0, 50, data["res_y"])
+        elif data['orientation'] == 2:
+            self.bottom_edge.setRect(0, 0, data["res_x"], 50)
+        elif data['orientation'] == 3:
+            self.bottom_edge.setRect(0, 0, 50, data["res_y"])
         if data["replica_of"]:
             label_text = f"{self.name} [{','.join(data['replica_of'])}]"
         else:
             label_text = self.name
-        if data["orientation"] in (0, 2):
-            self.setRect(0, 0, data["res_x"], data["res_y"])
-            if data["orientation"] == 0:
-                self.bottom_edge.setRect(0, data["res_y"] - 50, data["res_x"], 50)
-            if data["orientation"] == 2:
-                self.bottom_edge.setRect(0, 0, data["res_x"], 50)
-        else:
-            self.setRect(0, 0, data["res_y"], data["res_x"])
-            if data["orientation"] == 1:
-                self.bottom_edge.setRect(data["res_y"] - 50, 0, 50, data["res_x"])
-            if data["orientation"] == 3:
-                self.bottom_edge.setRect(0, 0, 50, data["res_x"])
-        self.setPos(data["pos_x"], data["pos_y"])
         self.label.setPlainText(label_text)
         label_scale = min(
             self.rect().width() / self.label.boundingRect().width(),
@@ -44,13 +41,14 @@ class MonitorItem(QGraphicsRectItem, QObject):
         if data["enabled"]:
             if data["primary"]:
                 self.setBrush(QBrush("#eee8d5", Qt.SolidPattern))
-                self.setZValue(1)
+                self.setZValue(1000)
             else:
-                self.setBrush(QBrush("white", Qt.SolidPattern))
+                self.setBrush(QBrush("#ffffff", Qt.SolidPattern))
                 self.setZValue(self.z)
                 self.z -= 1
         else:
-            self.setBrush(QBrush("#010101", Qt.FDiagPattern))
+            self.setBrush(QBrush("#f1f1f1", Qt.SolidPattern))
+            self.setZValue(-1000)
 
     def mousePressEvent(self, event):
         self.window.pos_label.show()
