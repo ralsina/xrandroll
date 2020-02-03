@@ -409,7 +409,7 @@ def main():
     ui_file.open(QFile.ReadOnly)
 
     loader = QUiLoader()
-    window = Window(loader.load(ui_file))
+    Window(loader.load(ui_file))
 
     sys.exit(app.exec_())
 
