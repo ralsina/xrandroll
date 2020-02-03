@@ -247,16 +247,33 @@ class Window(QObject):
         for name, monitor in self.xrandr_info.items():
             self.ui.screenCombo.addItem(name)
             mon_item = MonitorItem(data=monitor, window=self, name=name,)
-            # mon_item.setPos(monitor["pos_x"], monitor["pos_y"])
             self.scene.addItem(mon_item)
             monitor["item"] = mon_item
         self.ui.screenCombo.setCurrentText(self.choose_a_monitor())
         self.adjust_view()
         self.scale_changed()  # Trigger scale labels update
 
-    def detect_scaling_mode(self, monitor):
+    def detect_scale_mode(self, monitor):
         """Given a monitor's data, try to guess what scaling
-        mode it's using."""
+        mode it's using.
+
+        TODO: detect "Automatic: physical dimensions"
+        """
+        if not monitor["current_mode"]:  # Disabled, whatever
+            return None
+
+        mod_x, mod_y = [int(x) for x in monitor["current_mode"].split("x")]
+        scale_x = monitor["res_x"] / mod_x
+        scale_y = monitor["res_y"] / mod_y
+
+        if 1 == scale_x == scale_y:
+            print("Scale mode looks like 1x1")
+            return "Disabled (1x1)"
+        elif scale_x == scale_y:
+            print("Looks like Manual, same in both dimensions")
+            return "Manual, same in both dimensions"
+        else:
+            return "Manual"
 
     def choose_a_monitor(self):
         """Choose what monitor to select by default.
@@ -416,6 +433,10 @@ class Window(QObject):
                 if mon in self.xrandr_info[name]["replica_of"]:
                     self.ui.replicaOf.setCurrentText(mon)
         self.ui.modes.blockSignals(False)
+
+        guessed_scale_mode = self.detect_scale_mode(self.xrandr_info[name])
+        self.ui.scaleModeCombo.setCurrentText(guessed_scale_mode)
+        self.scale_mode_changed()
 
     def scale_changed(self):
         self.ui.horizontalScaleLabel.setText(
