@@ -312,7 +312,9 @@ class Window(QObject):
         data = subprocess.check_output(["xrandr"]).decode("utf-8").splitlines()
         name = None
         for line in data:
-            if line and line[0] not in "S \t":  # Output line
+            if (
+                line and line[0] not in "S \t" and "disconnected" not in line
+            ):  # Output line
                 (
                     name,
                     primary,
