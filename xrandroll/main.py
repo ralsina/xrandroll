@@ -218,9 +218,6 @@ class Window(QObject):
             target_x, target_y = [replicate[x] for x in ["res_x", "res_y"]]
             scale_x = 1000 * target_x / mod_x
             scale_y = 1000 * target_y / mod_y
-            breakpoint()
-            print(target_x, target_y, mod_x, mod_y)
-            print(scale_x, scale_y)
             self.ui.horizontalScale.setValue(scale_x)
             self.ui.verticalScale.setValue(scale_y)
 
