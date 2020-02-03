@@ -1,6 +1,6 @@
 from PySide2.QtCore import Qt, QObject
 from PySide2.QtWidgets import QGraphicsRectItem, QGraphicsTextItem
-from PySide2.QtGui import QBrush
+from PySide2.QtGui import QBrush, QColor
 
 
 class MonitorItem(QGraphicsRectItem, QObject):
@@ -40,14 +40,20 @@ class MonitorItem(QGraphicsRectItem, QObject):
         self.label.setScale(label_scale)
         if data["enabled"]:
             if data["primary"]:
-                self.setBrush(QBrush("#eee8d5", Qt.SolidPattern))
+                color = QColor("#eee8d5")
+                color.setAlpha(200)
+                self.setBrush(QBrush(color, Qt.SolidPattern))
                 self.setZValue(1000)
             else:
-                self.setBrush(QBrush("#ffffff", Qt.SolidPattern))
+                color = QColor("#ffffff")
+                color.setAlpha(200)
+                self.setBrush(QBrush(color, Qt.SolidPattern))
                 self.setZValue(self.z)
                 self.z -= 1
         else:
-            self.setBrush(QBrush("#f1f1f1", Qt.SolidPattern))
+            color = QColor("#f1f1f1")
+            color.setAlpha(200)
+            self.setBrush(QBrush(color, Qt.SolidPattern))
             self.setZValue(-1000)
 
         if not data["current_mode"]:  # Disconnected or disabled
