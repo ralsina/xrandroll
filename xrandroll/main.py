@@ -226,7 +226,9 @@ class Window(QObject):
             self.ui.horizontalScale.setValue(scale_x)
             self.ui.verticalScale.setValue(scale_y)
 
-        mon["item"].update_visuals(mon)
+        self.update_replica_of_data()
+        for _, mon in self.xrandr_info.items():
+            mon["item"].update_visuals(mon)
 
     def do_reset(self):
         for n in self.xrandr_info:
