@@ -73,10 +73,21 @@ class MonitorItem(QGraphicsRectItem, QObject):
         self.window.pos_label.hide()
 
     def mouseMoveEvent(self, event):
+        snaps_x, snaps_y = self.window.possible_snaps(self.name)
         view = event.widget().parent()
         click_pos = event.buttonDownScreenPos(Qt.LeftButton)
         current_pos = event.screenPos()
-        self.setPos(
-            view.mapToScene(view.mapFromScene(self.orig_pos) + current_pos - click_pos)
-        )
+        new_pos = view.mapFromScene(self.orig_pos) + current_pos - click_pos
+        new_pos = view.mapToScene(new_pos)
+        if not event.modifiers() & Qt.AltModifier:
+            # Check for snaps
+            x = new_pos.x()
+            delta_x = min((abs(x - sx), i) for i, sx in enumerate(snaps_x))
+            if delta_x[0] < 50:  # snap
+                new_pos.setX(int(snaps_x[delta_x[1]]))
+            y = new_pos.y()
+            delta_y = min((abs(y - sy), i) for i, sy in enumerate(snaps_y))
+            if delta_y[0] < 50:  # snap
+                new_pos.setY(int(snaps_y[delta_y[1]]))
+        self.setPos(new_pos)
         self.window.show_pos(int(self.pos().x()), int(self.pos().y()))

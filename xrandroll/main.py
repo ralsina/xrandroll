@@ -346,6 +346,23 @@ class Window(QObject):
             mon["item"].update_visuals(mon)
         self.adjust_view()
 
+    def possible_snaps(self, name):
+        """Return two lists of values to which the x and y position
+        of monitor "name" could snap to."""
+        snaps_x = []
+        snaps_y = []
+
+        for monitor, data in self.xrandr_info.items():
+            if monitor == name:
+                continue
+            else:
+                mod_x, mod_y = [int(x) for x in data["current_mode"].split("x")]
+                snaps_x.append(data["pos_x"])
+                snaps_x.append(data["pos_x"] + mod_x)
+                snaps_y.append(data["pos_y"])
+                snaps_y.append(data["pos_y"] + mod_y)
+        return snaps_x, snaps_y
+
     def adjust_view(self):
         self.ui.sceneView.resetTransform()
         self.ui.sceneView.ensureVisible(self.scene.sceneRect(), 100, 100)
