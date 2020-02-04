@@ -121,7 +121,10 @@ class Window(QObject):
             # Choose a mode
             self.ui.modes.setCurrentIndex(0)
             self.mode_changed()
-        monitor["item"].update_visuals(monitor)
+        self.update_replica_of_data()
+        for _, mon in self.xrandr_info.items():
+            mon["item"].update_visuals(mon)
+        self.adjust_view()
 
     def primary_changed(self):
         mon = self.ui.screenCombo.currentText()
