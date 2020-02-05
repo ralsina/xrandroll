@@ -38,6 +38,22 @@ class Screen:
                 if a != b and is_replica_of(self.monitors[a], self.monitors[b]):
                     self.monitors[a].replica_of.append(b)
 
+    def choose_a_monitor(self):
+        """Choose what monitor to select by default.
+
+        * Not disabled
+        * Primary, if possible
+        """
+
+        candidate = None
+        for name, mon in self.monitors.items():
+            if not mon.enabled:
+                continue
+            if mon.primary:
+                return name
+            candidate = name
+        return candidate
+
 
 def read_data():
     data = subprocess.check_output(
