@@ -2,7 +2,6 @@ import os
 import shlex
 import subprocess
 import sys
-from copy import deepcopy
 
 from PySide2.QtCore import QFile, QObject
 from PySide2.QtUiTools import QUiLoader
@@ -75,20 +74,6 @@ def parse_monitor(line):
     )
 
 
-def is_replica_of(a, b):
-    """Return True if monitor a is a replica of b.
-
-    Replica means same resolution and position.
-    """
-    return (
-        a["pos_x"] == b["pos_x"]
-        and a["pos_y"] == b["pos_y"]
-        and a["res_x"] == b["res_x"]
-        and a["res_y"] == b["res_y"]
-        and b["enabled"]
-    )
-
-
 class Window(QObject):
     def __init__(self, ui):
         super().__init__()
@@ -100,7 +85,6 @@ class Window(QObject):
         self.ui.orientationCombo.currentIndexChanged.connect(self.orientation_changed)
         self.xrandr_info = {}
         self.get_xrandr_info()
-        self.orig_xrandr_info = deepcopy(self.xrandr_info)
         self.fill_ui()
         self.ui.horizontalScale.valueChanged.connect(self.scale_changed)
         self.ui.verticalScale.valueChanged.connect(self.scale_changed)
@@ -132,17 +116,21 @@ class Window(QObject):
         self.adjust_view()
 
     def primary_changed(self):
-        mon = self.ui.screenCombo.currentText()
+        mon_name = self.ui.screenCombo.currentText()
         primary = self.ui.primary.isChecked()
+        if primary:
+            self.screen.set_primary(mon_name)
+        else:
+            self.screen.set_primary("foobar")  # no primary
 
-        # Update visuals on all monitos
-        for name, monitor in self.xrandr_info.items():
-            if name == mon:
-                monitor["primary"] = primary
-            else:
-                if primary:  # There can only be one primary
-                    monitor["primary"] = False
-            monitor["item"].update_visuals(monitor)
+        # TODO Update visuals on all monitos
+        # for name, monitor in self.xrandr_info.items():
+        #     if name == mon:
+        #         monitor["primary"] = primary
+        #     else:
+        #         if primary:  # There can only be one primary
+        #             monitor["primary"] = False
+        #     monitor["item"].update_visuals(monitor)
 
     def scale_mode_changed(self):
         mon = self.ui.screenCombo.currentText()
@@ -253,57 +241,19 @@ class Window(QObject):
         subprocess.check_call(shlex.split(cli))
 
     def fill_ui(self):
-        """Load data from xrandr and setup the whole thing."""
+        """Configure UI out of our screen data."""
         self.scene = QGraphicsScene(self)
         self.ui.sceneView.setScene(self.scene)
         self.ui.screenCombo.clear()
 
-        for name, monitor in self.xrandr_info.items():
+        for name, monitor in self.screen.monitors.items():
             self.ui.screenCombo.addItem(name)
             mon_item = MonitorItem(data=monitor, window=self, name=name,)
             self.scene.addItem(mon_item)
-            monitor["item"] = mon_item
-        self.ui.screenCombo.setCurrentText(self.choose_a_monitor())
+            monitor.item = mon_item
+        self.ui.screenCombo.setCurrentText(self.screen.choose_a_monitor())
         self.adjust_view()
-        self.scale_changed()  # Trigger scale labels update
-
-    def detect_scale_mode(self, monitor):
-        """Given a monitor's data, try to guess what scaling
-        mode it's using.
-
-        TODO: detect "Automatic: physical dimensions"
-        """
-        if not monitor["current_mode"]:  # Disabled, whatever
-            return None
-
-        mod_x, mod_y = parse_mode(monitor["current_mode"])
-        scale_x = monitor["res_x"] / mod_x
-        scale_y = monitor["res_y"] / mod_y
-
-        if 1 == scale_x == scale_y:
-            print("Scale mode looks like 1x1")
-            return "Disabled (1x1)"
-        elif scale_x == scale_y:
-            print("Looks like Manual, same in both dimensions")
-            return "Manual, same in both dimensions"
-        else:
-            return "Manual"
-
-    def choose_a_monitor(self):
-        """Choose what monitor to select by default.
-
-        * Not disabled
-        * Primary, if possible
-        """
-
-        candidate = None
-        for name, mon in self.xrandr_info.items():
-            if not mon["enabled"]:
-                continue
-            if mon["primary"]:
-                return name
-            candidate = name
-        return candidate
+        # self.scale_changed()  # Trigger scale labels update
 
     def orientation_changed(self):
         mon = self.ui.screenCombo.currentText()
@@ -317,24 +267,20 @@ class Window(QObject):
         if not mode:
             return
         print(f"Changing {mon} to {mode}")
-        self.xrandr_info[mon]["current_mode"] = mode
-        mode_x, mode_y = parse_mode(mode)
+        monitor = self.screen.monitors[mon]
+        monitor.set_current_mode(mode)
+        mode_x, mode_y = (
+            monitor.get_current_mode().res_x,
+            monitor.get_current_mode().res_y,
+        )
         # use resolution via scaling
-        if self.xrandr_info[mon]["orientation"] in (0, 2):
-            self.xrandr_info[mon]["res_x"] = int(
-                mode_x * self.ui.horizontalScale.value() / 1000
-            )
-            self.xrandr_info[mon]["res_y"] = int(
-                mode_y * self.ui.verticalScale.value() / 1000
-            )
+        if monitor.orientation in ("normal", "inverted"):
+            monitor.res_x = int(mode_x * self.ui.horizontalScale.value() / 1000)
+            monitor.res_y = int(mode_y * self.ui.verticalScale.value() / 1000)
         else:
-            self.xrandr_info[mon]["res_x"] = int(
-                mode_y * self.ui.horizontalScale.value() / 1000
-            )
-            self.xrandr_info[mon]["res_y"] = int(
-                mode_x * self.ui.verticalScale.value() / 1000
-            )
-        self.xrandr_info[mon]["item"].update_visuals(self.xrandr_info[mon])
+            monitor.res_x = int(mode_y * self.ui.horizontalScale.value() / 1000)
+            monitor.res_y = int(mode_x * self.ui.verticalScale.value() / 1000)
+        # TODO self.xrandr_info[mon]["item"].update_visuals(self.xrandr_info[mon])
 
     def show_pos(self, x, y):
         self.pos_label.setText(f"{x},{y}")
@@ -346,7 +292,7 @@ class Window(QObject):
             item = mon["item"]
             mon["pos_x"] = item.x()
             mon["pos_y"] = item.y()
-        self.update_replica_of_data()
+        self.screen.update_replica_of()
         for _, mon in self.xrandr_info.items():
             mon["item"].update_visuals(mon)
         self.adjust_view()
@@ -357,76 +303,36 @@ class Window(QObject):
         snaps_x = []
         snaps_y = []
 
-        for monitor, data in self.xrandr_info.items():
-            if monitor == name:
+        for output, monitor in self.screen.monitors.items():
+            if output == name:
                 continue
             else:
-                mod_x, mod_y = parse_mode(data["current_mode"])
-                snaps_x.append(data["pos_x"])
-                snaps_x.append(data["pos_x"] + mod_x)
-                snaps_y.append(data["pos_y"])
-                snaps_y.append(data["pos_y"] + mod_y)
+                mode = monitor.get_current_mode()
+                mod_x, mod_y = mode.res_x, mode.res_y
+                snaps_x.append(monitor.pos_x)
+                snaps_x.append(monitor.pos_x + mod_x)
+                snaps_y.append(monitor.pos_x)
+                snaps_y.append(monitor.pos_x + mod_y)
         return snaps_x, snaps_y
 
     def adjust_view(self):
         self.ui.sceneView.resetTransform()
         self.ui.sceneView.ensureVisible(self.scene.sceneRect(), 100, 100)
-        scale_factor = 0.8 * min(
-            self.ui.sceneView.width() / self.scene.sceneRect().width(),
-            self.ui.sceneView.height() / self.scene.sceneRect().height(),
-        )
-        self.ui.sceneView.scale(scale_factor, scale_factor)
+        try:
+            scale_factor = 0.8 * min(
+                self.ui.sceneView.width() / self.scene.sceneRect().width(),
+                self.ui.sceneView.height() / self.scene.sceneRect().height(),
+            )
+            self.ui.sceneView.scale(scale_factor, scale_factor)
+        except ZeroDivisionError:
+            # Don't worry
+            pass
 
     def get_xrandr_info(self):
-        self.screen = xrandr.parse_data(xrandr.read_data())
+        _xrandr_data = xrandr.read_data()
+        self.screen = xrandr.parse_data(_xrandr_data)
         self.screen.update_replica_of()
-
-        data = subprocess.check_output(["xrandr"]).decode("utf-8").splitlines()
-        name = None
-        for line in data:
-            if (
-                line and line[0] not in "S \t" and "disconnected" not in line
-            ):  # Output line
-                (
-                    name,
-                    primary,
-                    res_x,
-                    res_y,
-                    w_in_mm,
-                    h_in_mm,
-                    pos_x,
-                    pos_y,
-                    enabled,
-                    orientation,
-                ) = parse_monitor(line)
-                self.xrandr_info[name] = dict(
-                    primary=primary,
-                    res_x=res_x,
-                    res_y=res_y,
-                    w_in_mm=w_in_mm,
-                    h_in_mm=h_in_mm,
-                    pos_x=pos_x,
-                    pos_y=pos_y,
-                    modes=[],
-                    current_mode=None,
-                    enabled=enabled,
-                    replica_of=[],
-                    orientation=orientation,
-                )
-            elif line[0] == " ":  # A mode
-                mode_name = line.strip().split()[0]
-                self.xrandr_info[name]["modes"].append(mode_name)
-                if "*" in line:
-                    print(f"Current mode for {name}: {mode_name}")
-                    self.xrandr_info[name]["current_mode"] = mode_name
-        self.update_replica_of_data()
-
-    def update_replica_of_data(self):
-        for a in self.xrandr_info:
-            self.xrandr_info[a]["replica_of"] = []
-            for b in self.xrandr_info:
-                if a != b and is_replica_of(self.xrandr_info[a], self.xrandr_info[b]):
-                    self.xrandr_info[a]["replica_of"].append(b)
+        self.reset_screen = xrandr.parse_data(_xrandr_data)
 
     def monitor_selected(self, name):
         if not name:
@@ -435,27 +341,24 @@ class Window(QObject):
         self.ui.modes.blockSignals(True)
         # Show modes
         self.ui.modes.clear()
-        for mode in self.xrandr_info[name]["modes"]:
+        monitor = self.screen.monitors[name]
+        for mode in monitor.modes:
             self.ui.modes.addItem(mode)
-        if (
-            self.xrandr_info[name]["current_mode"] is None
-        ):  # Happens with turned off monitors
-            self.xrandr_info[name]["enabled"] = False
-            h_scale = v_scale = 1
+
+        mode = monitor.get_current_mode()
+        self.ui.modes.setCurrentText(mode.name)
+        if monitor.orientation in (0, 2):
+            h_scale = monitor.res_x / mode.res_x
+            v_scale = monitor.res_y / mode.res_y
         else:
-            self.ui.modes.setCurrentText(self.xrandr_info[name]["current_mode"])
-            mod_x, mod_y = parse_mode(self.xrandr_info[name]["current_mode"])
-            if self.xrandr_info[name]["orientation"] in (0, 2):
-                h_scale = self.xrandr_info[name]["res_x"] / mod_x
-                v_scale = self.xrandr_info[name]["res_y"] / mod_y
-            else:
-                h_scale = self.xrandr_info[name]["res_y"] / mod_x
-                v_scale = self.xrandr_info[name]["res_x"] / mod_y
+            h_scale = monitor.res_y / mode.res_x
+            v_scale = monitor.res_x / mode.res_y
+
         self.ui.horizontalScale.setValue(h_scale * 1000)
         self.ui.verticalScale.setValue(v_scale * 1000)
-        self.ui.primary.setChecked(self.xrandr_info[name]["primary"])
-        self.ui.enabled.setChecked(self.xrandr_info[name]["enabled"])
-        self.ui.orientationCombo.setCurrentIndex(self.xrandr_info[name]["orientation"])
+        self.ui.primary.setChecked(monitor.primary)
+        self.ui.enabled.setChecked(monitor.enabled)
+        self.ui.orientationCombo.setCurrentText(monitor.orientation)
 
         self.ui.replicaOf.clear()
         self.ui.replicaOf.addItem("None")
@@ -466,7 +369,7 @@ class Window(QObject):
                     self.ui.replicaOf.setCurrentText(mon)
         self.ui.modes.blockSignals(False)
 
-        guessed_scale_mode = self.detect_scale_mode(self.xrandr_info[name])
+        guessed_scale_mode = monitor.guess_scale_mode()
         self.ui.scaleModeCombo.setCurrentText(guessed_scale_mode)
         self.scale_mode_changed()
 
@@ -486,7 +389,6 @@ def main():
 
     loader = QUiLoader()
     Window(loader.load(ui_file))
-
     sys.exit(app.exec_())
 
 

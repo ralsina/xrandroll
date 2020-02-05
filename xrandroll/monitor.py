@@ -63,6 +63,7 @@ class Monitor:
     enabled = False
     primary = False
     orientation = "normal"
+    item = None
 
     def __init__(self, data):
         """Initialize a monitor object out of data from xrandr --verbose.

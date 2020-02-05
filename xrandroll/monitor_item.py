@@ -17,19 +17,19 @@ class MonitorItem(QGraphicsRectItem, QObject):
         self.bottom_edge.setBrush(QBrush("red", Qt.SolidPattern))
         self.update_visuals(data)
 
-    def update_visuals(self, data):
-        self.setRect(0, 0, data["res_x"], data["res_y"])
-        self.setPos(data["pos_x"], data["pos_y"])
-        if data["orientation"] == 0:
-            self.bottom_edge.setRect(0, data["res_y"] - 50, data["res_x"], 50)
-        elif data["orientation"] == 1:
-            self.bottom_edge.setRect(data["res_x"] - 50, 0, 50, data["res_y"])
-        elif data["orientation"] == 2:
-            self.bottom_edge.setRect(0, 0, data["res_x"], 50)
-        elif data["orientation"] == 3:
-            self.bottom_edge.setRect(0, 0, 50, data["res_y"])
-        if data["replica_of"]:
-            label_text = f"{self.name} [{','.join(data['replica_of'])}]"
+    def update_visuals(self, monitor):
+        self.setRect(0, 0, monitor.res_x, monitor.res_y)
+        self.setPos(monitor.pos_x, monitor.pos_y)
+        if monitor.orientation == "normal":
+            self.bottom_edge.setRect(0, monitor.res_y - 50, monitor.res_x, 50)
+        elif monitor.orientation == 1:
+            self.bottom_edge.setRect(monitor.res_x - 50, 0, 50, monitor.res_y)
+        elif monitor.orientation == 2:
+            self.bottom_edge.setRect(0, 0, monitor.res_x, 50)
+        elif monitor.orientation == 3:
+            self.bottom_edge.setRect(0, 0, 50, monitor.res_y)
+        if monitor.replica_of:
+            label_text = f"{self.name} [{','.join(monitor.replica_of)}]"
         else:
             label_text = self.name
         self.label.setPlainText(label_text)
@@ -38,8 +38,8 @@ class MonitorItem(QGraphicsRectItem, QObject):
             self.rect().height() / self.label.boundingRect().height(),
         )
         self.label.setScale(label_scale)
-        if data["enabled"]:
-            if data["primary"]:
+        if monitor.enabled:
+            if monitor.primary:
                 color = QColor("#eee8d5")
                 color.setAlpha(200)
                 self.setBrush(QBrush(color, Qt.SolidPattern))
@@ -50,16 +50,13 @@ class MonitorItem(QGraphicsRectItem, QObject):
                 self.setBrush(QBrush(color, Qt.SolidPattern))
                 self.setZValue(self.z)
                 self.z -= 1
+            self.show()
         else:
             color = QColor("#f1f1f1")
             color.setAlpha(200)
             self.setBrush(QBrush(color, Qt.SolidPattern))
             self.setZValue(-1000)
-
-        if not data["current_mode"]:  # Disconnected or disabled
             self.hide()
-        else:
-            self.show()
 
     def mousePressEvent(self, event):
         self.window.pos_label.show()
