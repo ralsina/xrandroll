@@ -157,18 +157,17 @@ class Window(QObject):
                 return
 
             # Find the primary monitor
-            primary = [k for k in self.xrandr_info if self.xrandr_info[k]["primary"]]
+            primary = self.screen.get_primary()
             if not primary:
                 print("Oops, no primary!")
                 return
-            primary = self.xrandr_info[primary[0]]
-            monitor = self.xrandr_info[mon]
+            monitor = self.screen.monitors[mon]
 
-            prim_density_x = primary["res_x"] / primary["w_in_mm"]
-            prim_density_y = primary["res_y"] / primary["h_in_mm"]
+            prim_density_x = primary.res_x / primary.w_in_mm
+            prim_density_y = primary.res_y / primary.h_in_mm
 
-            dens_x = monitor["res_x"] / monitor["w_in_mm"]
-            dens_y = monitor["res_y"] / monitor["h_in_mm"]
+            dens_x = monitor.res_x / monitor.w_in_mm
+            dens_y = monitor.res_y / monitor.h_in_mm
 
             try:
                 self.ui.horizontalScale.valueChanged.disconnect(
