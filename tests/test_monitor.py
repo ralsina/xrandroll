@@ -22,6 +22,7 @@ def test_parse_modes(test_data):
     assert len(m.modes) == 9
     assert m.enabled
     assert m.primary
+    assert m.orientation == "normal"
 
 
 def test_disabled_monitor(test_data):
@@ -29,3 +30,10 @@ def test_disabled_monitor(test_data):
     m = Monitor(data)
     assert m.enabled is False
     assert m.primary is False
+
+
+def test_parse_orientation(test_data):
+    data = test_data.read("monitor_1.txt", deserialize=False).splitlines()
+    data[0] = data[0].replace("normal (", "left (")
+    m = Monitor(data)
+    assert m.orientation == "left"
