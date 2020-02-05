@@ -251,9 +251,9 @@ class Window(QObject):
         # self.scale_changed()  # Trigger scale labels update
 
     def orientation_changed(self):
-        mon = self.ui.screenCombo.currentText()
-        orientation = self.ui.orientationCombo.currentIndex()
-        self.xrandr_info[mon]["orientation"] = orientation
+        mon_name = self.ui.screenCombo.currentText()
+        orientation = self.ui.orientationCombo.currentText().split()[0].lower()
+        self.screen.monitors[mon_name].orientation = orientation
         self.mode_changed()
 
     def mode_changed(self):

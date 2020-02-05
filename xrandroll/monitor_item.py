@@ -22,11 +22,11 @@ class MonitorItem(QGraphicsRectItem, QObject):
         self.setPos(monitor.pos_x, monitor.pos_y)
         if monitor.orientation == "normal":
             self.bottom_edge.setRect(0, monitor.res_y - 50, monitor.res_x, 50)
-        elif monitor.orientation == 1:
+        elif monitor.orientation == "left":
             self.bottom_edge.setRect(monitor.res_x - 50, 0, 50, monitor.res_y)
-        elif monitor.orientation == 2:
+        elif monitor.orientation == "inverted":
             self.bottom_edge.setRect(0, 0, monitor.res_x, 50)
-        elif monitor.orientation == 3:
+        elif monitor.orientation == "right":
             self.bottom_edge.setRect(0, 0, 50, monitor.res_y)
         if monitor.replica_of:
             label_text = f"{self.name} [{','.join(monitor.replica_of)}]"
