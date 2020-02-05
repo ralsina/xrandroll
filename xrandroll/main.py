@@ -9,6 +9,7 @@ from PySide2.QtUiTools import QUiLoader
 from PySide2.QtWidgets import QApplication, QGraphicsScene, QLabel
 
 from .monitor_item import MonitorItem
+from . import xrandr
 
 
 def parse_mode(mode):
@@ -377,6 +378,8 @@ class Window(QObject):
         self.ui.sceneView.scale(scale_factor, scale_factor)
 
     def get_xrandr_info(self):
+        self.monitors = xrandr.parse_data(xrandr.read_data())
+
         data = subprocess.check_output(["xrandr"]).decode("utf-8").splitlines()
         name = None
         for line in data:
