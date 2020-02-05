@@ -104,6 +104,12 @@ class Monitor:
     def __repr__(self):
         return f"Monitor: {self.output}"
 
+    def get_matching_mode(self, mode):
+        """Try to find a mode that matches resolution with given one."""
+        for m in self.modes.values():
+            if m.res_x == mode.res_x and m.res_y == mode.res_y:
+                return m
+
     def get_current_mode_name(self):
         for k, v in self.modes.items():
             if v.current:

@@ -187,36 +187,39 @@ class Window(QObject):
             self.ui.verticalScale.setValue(self.ui.horizontalScale.value())
 
     def replica_changed(self):
-        mon = self.ui.screenCombo.currentText()
+        mon_name = self.ui.screenCombo.currentText()
         replicate = self.ui.replicaOf.currentText()
-        print(f"Making {mon} a replica of {replicate}")
+        print(f"Making {mon_name} a replica of {replicate}")
         if replicate in ("None", "", None):
             print("TODO: make things non-replicas")
             return
-        mon = self.xrandr_info[mon]
-        replicate = self.xrandr_info[replicate]
+        mon = self.screen.monitors[mon_name]
+        replicate = self.screen.monitors[replicate]
 
         # Making a replica implies:
         # Set the same position
-        mon["pos_x"] = replicate["pos_x"]
-        mon["pos_y"] = replicate["pos_y"]
+        mon.pos_x = replicate.pos_x
+        mon.pos_y = replicate.pos_y
 
         # Set the same mode if possible
-        if replicate["current_mode"] in mon["modes"]:
-            mon["current_mode"] = replicate["current_mode"]
+        matching_mode = mon.get_matching_mode(replicate.get_current_mode())
+        if matching_mode:
+            mon.set_current_mode(matching_mode.name)
         else:
             # Keep the current mode, and change scaling so it
             # has the same effective size as the desired mode
-            mod_x, mod_y = parse_mode(mon["current_mode"])
-            target_x, target_y = [replicate[x] for x in ["res_x", "res_y"]]
+            c_mode = mon.get_current_mode()
+            mod_x, mod_y = c_mode.res_x, c_mode.res_y
+            r_mode = replicate.get_current_mode
+            target_x, target_y = r_mode.res_x, r_mode.res_y
             scale_x = 1000 * target_x / mod_x
             scale_y = 1000 * target_y / mod_y
             self.ui.horizontalScale.setValue(scale_x)
             self.ui.verticalScale.setValue(scale_y)
 
-        self.update_replica_of_data()
-        for _, mon in self.xrandr_info.items():
-            mon["item"].update_visuals(mon)
+        self.screen.update_replica_of()
+        for mon in self.screen.monitors.values():
+            mon.item.update_visuals(mon)
 
     def do_reset(self):
         for n in self.xrandr_info:
