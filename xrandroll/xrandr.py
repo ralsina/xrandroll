@@ -54,6 +54,17 @@ class Screen:
             candidate = name
         return candidate
 
+    def get_primary(self):
+        """Return the primary monitor, if any."""
+        for mon in self.monitors.values():
+            if mon.primary:
+                return mon
+        return None
+
+    def set_primary(self, name):
+        for mon in self.monitors.values():
+            mon.primary = name == mon.output
+
 
 def read_data():
     data = subprocess.check_output(
