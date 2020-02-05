@@ -114,6 +114,12 @@ class Monitor:
         for k, v in self.modes.items():
             v.current = k == mode_name
 
+    def get_preferred_mode_name(self):
+        for k, v in self.modes.items():
+            if v.preferred:
+                return k
+        return None
+
     def guess_scale_mode(self):
         """Given a monitor's data, try to guess what scaling
         mode it's using.

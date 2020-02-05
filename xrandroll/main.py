@@ -83,7 +83,6 @@ class Window(QObject):
         self.ui.screenCombo.currentTextChanged.connect(self.monitor_selected)
         self.ui.replicaOf.currentTextChanged.connect(self.replica_changed)
         self.ui.orientationCombo.currentIndexChanged.connect(self.orientation_changed)
-        self.xrandr_info = {}
         self.get_xrandr_info()
         self.fill_ui()
         self.ui.horizontalScale.valueChanged.connect(self.scale_changed)
@@ -104,15 +103,15 @@ class Window(QObject):
         mon = self.ui.screenCombo.currentText()
         enabled = self.ui.enabled.isChecked()
         print(f"Setting {mon} enabled status to {enabled}")
-        monitor = self.xrandr_info[mon]
-        monitor["enabled"] = enabled
-        if enabled and not monitor["current_mode"]:
+        monitor = self.screen.monitors[mon]
+        monitor.enabled = enabled
+        if enabled and not monitor.get_current_mode():
             # Choose a mode
-            self.ui.modes.setCurrentIndex(0)
+            self.ui.modes.setCurrentText(monitor.get_preferred_mode_name())
             self.mode_changed()
-        self.update_replica_of_data()
-        for _, mon in self.xrandr_info.items():
-            mon["item"].update_visuals(mon)
+        self.screen.update_replica_of()
+        for mon in self.screen.monitors.values():
+            mon.item.update_visuals(mon)
         self.adjust_view()
 
     def primary_changed(self):
@@ -123,14 +122,8 @@ class Window(QObject):
         else:
             self.screen.set_primary("foobar")  # no primary
 
-        # TODO Update visuals on all monitos
-        # for name, monitor in self.xrandr_info.items():
-        #     if name == mon:
-        #         monitor["primary"] = primary
-        #     else:
-        #         if primary:  # There can only be one primary
-        #             monitor["primary"] = False
-        #     monitor["item"].update_visuals(monitor)
+        for monitor in self.screen.monitors.values():
+            monitor.item.update_visuals(monitor)
 
     def scale_mode_changed(self):
         mon = self.ui.screenCombo.currentText()
@@ -287,14 +280,14 @@ class Window(QObject):
         self.pos_label.resize(self.pos_label.sizeHint())
 
     def monitor_moved(self):
-        "Update xrandr_info with new monitor positions"
-        for _, mon in self.xrandr_info.items():
-            item = mon["item"]
-            mon["pos_x"] = item.x()
-            mon["pos_y"] = item.y()
+        "Update screen with new monitor positions"
+        for mon in self.screen.monitors.values():
+            item = mon.item
+            mon.pos_x = item.x()
+            mon.pos_y = item.y()
         self.screen.update_replica_of()
-        for _, mon in self.xrandr_info.items():
-            mon["item"].update_visuals(mon)
+        for mon in self.screen.monitors.values():
+            mon.item.update_visuals(mon)
         self.adjust_view()
 
     def possible_snaps(self, name):
@@ -347,7 +340,7 @@ class Window(QObject):
 
         mode = monitor.get_current_mode()
         self.ui.modes.setCurrentText(mode.name)
-        if monitor.orientation in (0, 2):
+        if monitor.orientation in ("normal", "inverted"):
             h_scale = monitor.res_x / mode.res_x
             v_scale = monitor.res_y / mode.res_y
         else:
@@ -362,10 +355,10 @@ class Window(QObject):
 
         self.ui.replicaOf.clear()
         self.ui.replicaOf.addItem("None")
-        for mon in self.xrandr_info:
+        for mon in self.screen.monitors:
             if mon != name:
                 self.ui.replicaOf.addItem(mon)
-                if mon in self.xrandr_info[name]["replica_of"]:
+                if mon in self.screen.monitors[name].replica_of:
                     self.ui.replicaOf.setCurrentText(mon)
         self.ui.modes.blockSignals(False)
 
