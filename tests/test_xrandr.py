@@ -10,10 +10,12 @@ def test_parse_data(test_data):
 
 def test_parse_with_disconnected_monitors(test_data):
     data = test_data.read("fisa_sample.txt", deserialize=False).splitlines()
-    parse_data(data)
+    screen = parse_data(data)
+    assert screen.choose_a_monitor() == "DP-1-1"
 
 
 def test_replicated_monitors(test_data):
     data = test_data.read("replicated.txt", deserialize=False).splitlines()
     screen = parse_data(data)
     assert screen.monitors["eDP"].replica_of == ["HDMI-A-0"]
+    assert screen.choose_a_monitor() == "eDP"
