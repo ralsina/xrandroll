@@ -63,11 +63,13 @@ class Monitor:
         """
 
         self.header = data.pop(0)
-        self.pos_x, self.pos_y = parse.search("+{:d}+{:d}", self.header)
         self.output = parse.search("{}{:s}", self.header)[0]
+        if "disconnected" in self.header:
+            # No modes, no pos, no fields, no nothing.
+            return
+        self.pos_x, self.pos_y = parse.search("+{:d}+{:d}", self.header)
 
         modes_data = _split_by_lines_matching("^  [^ ]", data)
-
         if modes_data:
             fields_data = _split_by_lines_matching(r"^\t[^ ]", modes_data.pop(0))
         else:
