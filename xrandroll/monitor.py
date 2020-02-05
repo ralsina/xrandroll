@@ -67,7 +67,11 @@ class Monitor:
         self.output = parse.search("{}{:s}", self.header)[0]
 
         modes_data = _split_by_lines_matching("^  [^ ]", data)
-        fields_data = _split_by_lines_matching(r"^\t[^ ]", modes_data.pop(0))
+
+        if modes_data:
+            fields_data = _split_by_lines_matching(r"^\t[^ ]", modes_data.pop(0))
+        else:
+            fields_data = []
 
         self.modes = {}
         for m in (Mode(d) for d in modes_data):
