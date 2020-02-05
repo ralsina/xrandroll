@@ -272,7 +272,7 @@ class Window(QObject):
         else:
             monitor.res_x = int(mode_y * self.ui.horizontalScale.value() / 1000)
             monitor.res_y = int(mode_x * self.ui.verticalScale.value() / 1000)
-        # TODO self.xrandr_info[mon]["item"].update_visuals(self.xrandr_info[mon])
+        monitor.item.update_visuals(monitor)
 
     def show_pos(self, x, y):
         self.pos_label.setText(f"{x},{y}")
