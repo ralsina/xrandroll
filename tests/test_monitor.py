@@ -20,3 +20,10 @@ def test_parse_modes(test_data):
     data = test_data.read("monitor_1.txt", deserialize=False).splitlines()
     m = Monitor(data)
     assert len(m.modes) == 9
+    assert m.enabled
+
+
+def test_disabled_monitor(test_data):
+    data = test_data.read("disabled_monitor.txt", deserialize=False).splitlines()
+    m = Monitor(data)
+    assert m.enabled is False

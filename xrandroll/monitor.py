@@ -56,6 +56,12 @@ class Mode:
 class Monitor:
     """Object representing a monitor according to xrandr."""
 
+    res_x = 0
+    res_y = 0
+    pos_x = 0
+    pos_y = 0
+    enabled = False
+
     def __init__(self, data):
         """Initialize a monitor object out of data from xrandr --verbose.
 
@@ -64,10 +70,13 @@ class Monitor:
 
         self.header = data.pop(0)
         self.output = parse.search("{}{:s}", self.header)[0]
+        self.replica_of = []
         if "disconnected" in self.header:
             # No modes, no pos, no fields, no nothing.
             return
-        self.pos_x, self.pos_y = parse.search("+{:d}+{:d}", self.header)
+        self.enabled = "+" in self.header
+        if self.enabled:
+            self.pos_x, self.pos_y = parse.search("+{:d}+{:d}", self.header)
 
         modes_data = _split_by_lines_matching("^  [^ ]", data)
         if modes_data:

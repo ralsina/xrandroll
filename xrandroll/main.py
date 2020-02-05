@@ -378,7 +378,8 @@ class Window(QObject):
         self.ui.sceneView.scale(scale_factor, scale_factor)
 
     def get_xrandr_info(self):
-        self.monitors = xrandr.parse_data(xrandr.read_data())
+        self.screen = xrandr.parse_data(xrandr.read_data())
+        self.screen.update_replica_of()
 
         data = subprocess.check_output(["xrandr"]).decode("utf-8").splitlines()
         name = None
