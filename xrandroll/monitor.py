@@ -61,6 +61,7 @@ class Monitor:
     pos_x = 0
     pos_y = 0
     enabled = False
+    primary = False
 
     def __init__(self, data):
         """Initialize a monitor object out of data from xrandr --verbose.
@@ -70,6 +71,7 @@ class Monitor:
 
         self.header = data.pop(0)
         self.output = parse.search("{}{:s}", self.header)[0]
+        self.primary = "primary" in self.header
         self.replica_of = []
         if "disconnected" in self.header:
             # No modes, no pos, no fields, no nothing.
