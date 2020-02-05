@@ -43,8 +43,8 @@ class Mode:
         self.data = data
         self.header = data[0]
         self.name = parse.search("({mode_name})", self.header)["mode_name"]
-        self.res_x = parse.search("h: width {res_x:d}", data[1])["res_x"]
-        self.res_y = parse.search("v: height {res_y:d}", data[2])["res_y"]
+        self.res_x = parse.search("h: width{:s}{res_x:d}", data[1])["res_x"]
+        self.res_y = parse.search("v: height{:s}{res_y:d}", data[2])["res_y"]
         self.refresh = parse.search("{refresh:f}Hz", data[2])["refresh"]
         self.preferred = "+preferred" in self.header
         self.current = "*current" in self.header
@@ -64,6 +64,8 @@ class Monitor:
 
         self.header = data.pop(0)
         self.pos_x, self.pos_y = parse.search("+{:d}+{:d}", self.header)
+        self.output = parse.search("{}{:s}", self.header)[0]
+
         modes_data = _split_by_lines_matching("^  [^ ]", data)
         fields_data = _split_by_lines_matching(r"^\t[^ ]", modes_data.pop(0))
 
@@ -74,6 +76,9 @@ class Monitor:
         self.fields = {}
         for f in (Field(d) for d in fields_data):
             self.fields[f.name] = f
+
+    def __repr__(self):
+        return f"Monitor: {self.output}"
 
     def get_current_mode_name(self):
         for k, v in self.modes.values():
