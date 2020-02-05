@@ -62,6 +62,7 @@ class Monitor:
     pos_y = 0
     enabled = False
     primary = False
+    orientation = "normal"
 
     def __init__(self, data):
         """Initialize a monitor object out of data from xrandr --verbose.
@@ -79,6 +80,8 @@ class Monitor:
         self.enabled = "+" in self.header
         if self.enabled:
             self.pos_x, self.pos_y = parse.search("+{:d}+{:d}", self.header)
+            self.res_x, self.res_y = parse.search("{:d}x{:d}", self.header)
+        self.orientation = parse.search("{:w} (normal left inverted", self.header)[0]
 
         modes_data = _split_by_lines_matching("^  [^ ]", data)
         if modes_data:
@@ -98,10 +101,35 @@ class Monitor:
         return f"Monitor: {self.output}"
 
     def get_current_mode_name(self):
-        for k, v in self.modes.values():
+        for k, v in self.modes.items():
             if v.current:
                 return k
+        return None
+
+    def get_current_mode(self):
+        return self.modes[self.get_current_mode_name()]
 
     def set_current_mode(self, mode_name):
         for k, v in self.modes.items():
             v.current = k == mode_name
+
+    def guess_scale_mode(self):
+        """Given a monitor's data, try to guess what scaling
+        mode it's using.
+
+        TODO: detect "Automatic: physical dimensions"
+        """
+        if not self.enabled:
+            return None
+        mode = self.get_current_mode()
+        scale_x = self.res_x / mode.res_x
+        scale_y = self.res_y / mode.res_y
+
+        if 1 == scale_x == scale_y:
+            print("Scale mode looks like 1x1")
+            return "Disabled (1x1)"
+        elif scale_x == scale_y:
+            print("Looks like Manual, same in both dimensions")
+            return "Manual, same in both dimensions"
+        else:
+            return "Manual"
