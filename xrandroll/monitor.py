@@ -64,6 +64,8 @@ class Monitor:
     primary = False
     orientation = "normal"
     item = None
+    w_in_mm = 100
+    h_in_mm = 100
 
     def __init__(self, data):
         """Initialize a monitor object out of data from xrandr --verbose.
@@ -82,6 +84,7 @@ class Monitor:
         if self.enabled:
             self.pos_x, self.pos_y = parse.search("+{:d}+{:d}", self.header)
             self.res_x, self.res_y = parse.search("{:d}x{:d}", self.header)
+            self.w_in_mm, self.h_in_mm = parse.search("{:d}mm x {:d}mm", self.header)
         self.orientation = parse.search("{:w} (normal left inverted", self.header)[0]
 
         modes_data = _split_by_lines_matching("^  [^ ]", data)
