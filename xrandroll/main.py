@@ -11,6 +11,10 @@ from PySide2.QtWidgets import QApplication, QGraphicsScene, QLabel
 from .monitor_item import MonitorItem
 
 
+def parse_mode(mode):
+    return (int(n) for n in mode.split("x"))
+
+
 def gen_xrandr_from_data(data):
     """Takes monitor data and generates a xrandr command line."""
     cli = ["xrandr"]
@@ -21,7 +25,7 @@ def gen_xrandr_from_data(data):
         else:
             cli.append(f'--pos {int(mon["pos_x"])}x{int(mon["pos_y"])}')
             cli.append(f'--mode {mon["current_mode"]}')
-            mod_x, mod_y = [int(n) for n in mon["current_mode"].split("x")]
+            mod_x, mod_y = parse_mode(mon["current_mode"])
             if mon["orientation"] in (1, 3):
                 mod_x, mod_y = mod_y, mod_x
             cli.append(f'--scale {mon["res_x"]/mod_x}x{mon["res_y"]/mod_y}')
@@ -222,7 +226,7 @@ class Window(QObject):
         else:
             # Keep the current mode, and change scaling so it
             # has the same effective size as the desired mode
-            mod_x, mod_y = [int(x) for x in mon["current_mode"].split("x")]
+            mod_x, mod_y = parse_mode(mon["current_mode"])
             target_x, target_y = [replicate[x] for x in ["res_x", "res_y"]]
             scale_x = 1000 * target_x / mod_x
             scale_y = 1000 * target_y / mod_y
@@ -271,7 +275,7 @@ class Window(QObject):
         if not monitor["current_mode"]:  # Disabled, whatever
             return None
 
-        mod_x, mod_y = [int(x) for x in monitor["current_mode"].split("x")]
+        mod_x, mod_y = parse_mode(monitor["current_mode"])
         scale_x = monitor["res_x"] / mod_x
         scale_y = monitor["res_y"] / mod_y
 
@@ -313,21 +317,21 @@ class Window(QObject):
             return
         print(f"Changing {mon} to {mode}")
         self.xrandr_info[mon]["current_mode"] = mode
-        mode_x, mode_y = mode.split("x")
+        mode_x, mode_y = parse_mode(mode)
         # use resolution via scaling
         if self.xrandr_info[mon]["orientation"] in (0, 2):
             self.xrandr_info[mon]["res_x"] = int(
-                int(mode_x) * self.ui.horizontalScale.value() / 1000
+                mode_x * self.ui.horizontalScale.value() / 1000
             )
             self.xrandr_info[mon]["res_y"] = int(
-                int(mode_y) * self.ui.verticalScale.value() / 1000
+                mode_y * self.ui.verticalScale.value() / 1000
             )
         else:
             self.xrandr_info[mon]["res_x"] = int(
-                int(mode_y) * self.ui.horizontalScale.value() / 1000
+                mode_y * self.ui.horizontalScale.value() / 1000
             )
             self.xrandr_info[mon]["res_y"] = int(
-                int(mode_x) * self.ui.verticalScale.value() / 1000
+                mode_x * self.ui.verticalScale.value() / 1000
             )
         self.xrandr_info[mon]["item"].update_visuals(self.xrandr_info[mon])
 
@@ -356,7 +360,7 @@ class Window(QObject):
             if monitor == name:
                 continue
             else:
-                mod_x, mod_y = [int(x) for x in data["current_mode"].split("x")]
+                mod_x, mod_y = parse_mode(data["current_mode"])
                 snaps_x.append(data["pos_x"])
                 snaps_x.append(data["pos_x"] + mod_x)
                 snaps_y.append(data["pos_y"])
@@ -436,9 +440,7 @@ class Window(QObject):
             h_scale = v_scale = 1
         else:
             self.ui.modes.setCurrentText(self.xrandr_info[name]["current_mode"])
-            mod_x, mod_y = [
-                int(x) for x in self.xrandr_info[name]["current_mode"].split("x")
-            ]
+            mod_x, mod_y = parse_mode(self.xrandr_info[name]["current_mode"])
             if self.xrandr_info[name]["orientation"] in (0, 2):
                 h_scale = self.xrandr_info[name]["res_x"] / mod_x
                 v_scale = self.xrandr_info[name]["res_y"] / mod_y
