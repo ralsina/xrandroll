@@ -273,6 +273,7 @@ class Window(QObject):
             return
         # needed so we don't flip through all modes as they are added
         self.ui.modes.blockSignals(True)
+        self.ui.primary.blockSignals(True)
         # Show modes
         self.ui.modes.clear()
         monitor = self.screen.monitors[name]
@@ -302,6 +303,7 @@ class Window(QObject):
                 if mon in self.screen.monitors[name].replica_of:
                     self.ui.replicaOf.setCurrentText(mon)
         self.ui.modes.blockSignals(False)
+        self.ui.primary.blockSignals(False)
 
         guessed_scale_mode = monitor.guess_scale_mode()
         self.ui.scaleModeCombo.setCurrentText(guessed_scale_mode)
