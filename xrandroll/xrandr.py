@@ -29,6 +29,27 @@ class Screen:
             self.monitors[m.output] = m
         self.update_replica_of()
 
+    def generate(self):
+        """Create a xrandr invocation to match this state."""
+        cli = ["xrandr"]
+        for output, mon in self.monitors.items():
+            cli.append(f"--output {output}")
+            if not mon.enabled:
+                cli.append("--off")
+            else:
+                mode = mon.get_current_mode()
+                cli.append(f"--pos {int(mon.pos_x)}x{int(mon.pos_y)}")
+                cli.append(f"--mode {mode.res_x}x{mode.res_y}")
+                mod_x, mod_y = mode.res_x, mode.res_y
+                if mon.orientation in ("left", "right"):
+                    mod_x, mod_y = mod_y, mod_x
+                cli.append(f"--scale {mon.res_x/mod_x}x{mon.res_y/mod_y}")
+                cli.append(f"--rotate {mon.orientation}")
+                if mon.primary:
+                    cli.append("--primary")
+
+        return " ".join(cli)
+
     def update_replica_of(self):
         """Decide which monitors are replicas of each other and
         mark them as such."""

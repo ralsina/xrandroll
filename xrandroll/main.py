@@ -11,69 +11,6 @@ from .monitor_item import MonitorItem
 from . import xrandr
 
 
-def parse_mode(mode):
-    return (int(n) for n in mode.split("x"))
-
-
-def gen_xrandr_from_data(data):
-    """Takes monitor data and generates a xrandr command line."""
-    cli = ["xrandr"]
-    for name, mon in data.items():
-        cli.append(f"--output {name}")
-        if not mon["enabled"]:
-            cli.append("--off")
-        else:
-            cli.append(f'--pos {int(mon["pos_x"])}x{int(mon["pos_y"])}')
-            cli.append(f'--mode {mon["current_mode"]}')
-            mod_x, mod_y = parse_mode(mon["current_mode"])
-            if mon["orientation"] in (1, 3):
-                mod_x, mod_y = mod_y, mod_x
-            cli.append(f'--scale {mon["res_x"]/mod_x}x{mon["res_y"]/mod_y}')
-            cli.append(
-                f"--rotate {['normal', 'left', 'inverted', 'right'][mon['orientation']]}"
-            )
-            if mon["primary"]:
-                cli.append("--primary")
-
-    return " ".join(cli)
-
-
-def parse_monitor(line):
-    parts = line.split()
-    name = parts[0]
-    primary = "primary" in parts
-    if "+" in line:  # Is enabled
-        enabled = True
-        res_x, res_y = [p for p in parts if "x" in p][0].split("+")[0].split("x")
-        pos_x, pos_y = [p for p in parts if "x" in p][0].split("+")[1:]
-        w_in_mm, h_in_mm = [p.split("mm")[0] for p in parts if p.endswith("mm")]
-    else:
-        enabled = False
-        res_x = res_y = pos_x = pos_y = w_in_mm = h_in_mm = 0
-
-    left_side = line.split(" (normal left inverted ")[0]
-    orientation = 0
-    if "left" in left_side:
-        orientation = 1
-    elif "inverted" in left_side:
-        orientation = 2
-    elif "right" in left_side:
-        orientation = 3
-
-    return (
-        name,
-        primary,
-        int(res_x),
-        int(res_y),
-        int(w_in_mm),
-        int(h_in_mm),
-        int(pos_x),
-        int(pos_y),
-        enabled,
-        orientation,
-    )
-
-
 class Window(QObject):
     def __init__(self, ui):
         super().__init__()
@@ -221,9 +158,12 @@ class Window(QObject):
         for mon in self.screen.monitors.values():
             mon.item.update_visuals(mon)
 
+    def run(self, cli):
+        print(f"Running {cli}")
+        subprocess.check_call(shlex.split(cli))
+
     def do_reset(self):
-        for n in self.xrandr_info:
-            self.xrandr_info[n].update(self.orig_xrandr_info[n])
+        self.run(self.reset_screen.generate())
         self.fill_ui()
 
     def do_ok(self):
@@ -231,9 +171,8 @@ class Window(QObject):
         self.ui.accept()
 
     def do_apply(self):
-        cli = gen_xrandr_from_data(self.xrandr_info)
-        print(cli)
-        subprocess.check_call(shlex.split(cli))
+        cli = self.screen.generate()
+        self.run(cli)
 
     def fill_ui(self):
         """Configure UI out of our screen data."""
