@@ -30,9 +30,10 @@ class Screen:
         self.update_replica_of()
 
     def generate(self):
-        """Create a xrandr invocation to match this state."""
-        cli = ["xrandr"]
+        """Create a list of xrandr invocations to match this state."""
+        results = []
         for output, mon in self.monitors.items():
+            cli = ["xrandr"]
             cli.append(f"--output {output}")
             if not mon.enabled:
                 cli.append("--off")
@@ -47,8 +48,8 @@ class Screen:
                 cli.append(f"--rotate {mon.orientation}")
                 if mon.primary:
                     cli.append("--primary")
-
-        return " ".join(cli)
+            results.append(" ".join(cli))
+        return results
 
     def update_replica_of(self):
         """Decide which monitors are replicas of each other and

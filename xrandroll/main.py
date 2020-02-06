@@ -158,9 +158,10 @@ class Window(QObject):
         for mon in self.screen.monitors.values():
             mon.item.update_visuals(mon)
 
-    def run(self, cli):
-        print(f"Running {cli}")
-        subprocess.check_call(shlex.split(cli))
+    def run(self, commands):
+        for i, cmd in enumerate(commands, 1):
+            print(f"Running {cmd} [{i}/{len(commands)}]")
+            subprocess.check_call(shlex.split(cmd))
 
     def do_reset(self):
         self.run(self.reset_screen.generate())
