@@ -66,8 +66,8 @@ class MonitorItem(QGraphicsRectItem, QObject):
 
     def mouseReleaseEvent(self, event):
         self.setCursor(Qt.OpenHandCursor)
-        self.window.monitor_moved()
         self.window.pos_label.hide()
+        self.window.monitor_moved()
 
     def mouseMoveEvent(self, event):
         snaps_x, snaps_y = self.window.possible_snaps(self.name)

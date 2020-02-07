@@ -3,7 +3,7 @@ import shlex
 import subprocess
 import sys
 
-from PySide2.QtCore import QFile, QObject
+from PySide2.QtCore import QFile, QObject, QTimer
 from PySide2.QtUiTools import QUiLoader
 from PySide2.QtWidgets import QApplication, QGraphicsScene, QLabel
 
@@ -230,7 +230,8 @@ class Window(QObject):
         self.screen.update_replica_of()
         for mon in self.screen.monitors.values():
             mon.item.update_visuals(mon)
-        self.adjust_view()
+        # Adjust view a little later
+        QTimer.singleShot(0, self.adjust_view)
 
     def possible_snaps(self, name):
         """Return two lists of values to which the x and y position
@@ -251,6 +252,7 @@ class Window(QObject):
         return snaps_x, snaps_y
 
     def adjust_view(self):
+        print("Adjusting view")
         self.ui.sceneView.resetTransform()
         self.ui.sceneView.ensureVisible(self.scene.sceneRect(), 100, 100)
         try:
