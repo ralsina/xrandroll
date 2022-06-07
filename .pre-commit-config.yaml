@@ -1,11 +1,15 @@
+repos:
 -   repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v2.4.0  # Use the ref you want to point at
+    rev: v4.2.0  # Use the ref you want to point at
     hooks:
     - id: check-builtin-literals
     - id: check-toml
-    - id: flake8
     - id: debug-statements
 -   repo: https://github.com/ambv/black
-    rev: stable
+    rev: 22.3.0
     hooks:
     - id: black
+-   repo: https://github.com/pycqa/flake8
+    rev: 4.0.1 
+    hooks:
+    -   id: flake8
