@@ -14,7 +14,8 @@ So I went and wrote one.
 
 ## To try:
 
-If you have PySide2: `python -m xrandroll` in the folder where you cloned it.
+If you have PySide2: `python -m xrandroll` in the folder where you cloned it (of course deps are a problem,
+this is experimental code, if you can't figure it out it's probably better for you 😊).
 
 ## TODO:
 
