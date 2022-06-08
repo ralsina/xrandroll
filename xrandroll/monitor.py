@@ -48,12 +48,13 @@ class Mode:
         self.refresh = parse.search("{refresh:f}Hz", data[2])["refresh"]
         self.preferred = "+preferred" in self.header
         self.current = "*current" in self.header
+        self.frequency = parse.search("{freq:f}Hz", data[2])["freq"]
 
     def __repr__(self):
         return self.header.strip()
 
     def __str__(self):
-        return f"{self.res_x}x{self.res_y} ({self.name})"
+        return f"{self.res_x}x{self.res_y} {int(self.frequency)}Hz ({self.name})"
 
 
 class Monitor:

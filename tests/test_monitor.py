@@ -21,7 +21,8 @@ def test_parse_modes(test_data):
     m = Monitor(data)
     assert len(m.modes) == 9
     assert "0x56" in m.modes
-    assert str(m.modes["0x56"]) == "1920x1080 (0x56)"
+    assert str(m.modes["0x56"]) == "1920x1080 60Hz (0x56)"
+    assert m.modes["0x56"].frequency == 60.01
     assert m.enabled
     assert m.primary
     assert m.orientation == "normal"
