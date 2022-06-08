@@ -10,10 +10,10 @@ def _split_by_lines_matching(pattern, lines):
     matching the pattern. The line matching the pattern is
     included in the SECOND group. Empty groups are removed."""
     groups = [[]]
-    for l in lines:
-        if re.match(pattern, l):  # Start a new group
+    for line in lines:
+        if re.match(pattern, line):  # Start a new group
             groups.append([])
-        groups[-1].append(l)
+        groups[-1].append(line)
 
     return [g for g in groups if g]
 
@@ -51,6 +51,9 @@ class Mode:
 
     def __repr__(self):
         return self.header.strip()
+
+    def __str__(self):
+        return f"{self.res_x}x{self.res_y} ({self.name})"
 
 
 class Monitor:
@@ -123,10 +126,10 @@ class Monitor:
         for k, v in self.modes.items():
             v.current = k == mode_name
 
-    def get_preferred_mode_name(self):
+    def get_preferred_mode(self):
         for k, v in self.modes.items():
             if v.preferred:
-                return k
+                return v
         return None
 
     def guess_scale_mode(self):

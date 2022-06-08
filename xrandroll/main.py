@@ -3,12 +3,13 @@ import shlex
 import subprocess
 import sys
 
+import parse
 from PySide2.QtCore import QFile, QObject, QTimer
 from PySide2.QtUiTools import QUiLoader
 from PySide2.QtWidgets import QApplication, QGraphicsScene, QLabel
 
-from .monitor_item import MonitorItem
 from . import xrandr
+from .monitor_item import MonitorItem
 
 
 class Window(QObject):
@@ -44,7 +45,7 @@ class Window(QObject):
         monitor.enabled = enabled
         if enabled and not monitor.get_current_mode():
             # Choose a mode
-            self.ui.modes.setCurrentText(monitor.get_preferred_mode_name())
+            self.ui.modes.setCurrentText(str(monitor.get_preferred_mode()))
             self.mode_changed()
         self.screen.update_replica_of()
         for mon in self.screen.monitors.values():
@@ -183,7 +184,11 @@ class Window(QObject):
 
         for name, monitor in self.screen.monitors.items():
             self.ui.screenCombo.addItem(name)
-            mon_item = MonitorItem(data=monitor, window=self, name=name,)
+            mon_item = MonitorItem(
+                data=monitor,
+                window=self,
+                name=name,
+            )
             self.scene.addItem(mon_item)
             monitor.item = mon_item
         self.ui.screenCombo.setCurrentText(self.screen.choose_a_monitor())
@@ -198,7 +203,7 @@ class Window(QObject):
 
     def mode_changed(self):
         mon = self.ui.screenCombo.currentText()
-        mode = self.ui.modes.currentText()
+        mode = parse.search("({mode_name})", self.ui.modes.currentText())["mode_name"]
         if not mode:
             return
         print(f"Changing {mon} to {mode}")
@@ -280,11 +285,11 @@ class Window(QObject):
         # Show modes
         self.ui.modes.clear()
         monitor = self.screen.monitors[name]
-        for mode in monitor.modes:
-            self.ui.modes.addItem(mode)
+        for name, mode in monitor.modes.items():
+            self.ui.modes.addItem(str(mode))
 
         mode = monitor.get_current_mode()
-        self.ui.modes.setCurrentText(mode.name)
+        self.ui.modes.setCurrentText(str(mode))
         if monitor.orientation in ("normal", "inverted"):
             h_scale = monitor.res_x / mode.res_x
             v_scale = monitor.res_y / mode.res_y
