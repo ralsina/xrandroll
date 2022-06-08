@@ -76,8 +76,8 @@ class MonitorItem(QGraphicsRectItem, QObject):
         current_pos = event.screenPos()
         new_pos = view.mapFromScene(self.orig_pos) + current_pos - click_pos
         new_pos = view.mapToScene(new_pos)
-        delta = view.mapToScene(0, 20).y()
-        if not event.modifiers() & Qt.AltModifier:
+        delta = abs(view.mapToScene(0, 25).y())
+        if not event.modifiers() & Qt.ControlModifier:
             # Check for snaps
             x = new_pos.x()
             delta_x = min((abs(x - sx), i) for i, sx in enumerate(snaps_x))
