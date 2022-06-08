@@ -127,33 +127,34 @@ class Window(QObject):
     def replica_changed(self):
         mon_name = self.ui.screenCombo.currentText()
         replicate = self.ui.replicaOf.currentText()
-        print(f"Making {mon_name} a replica of {replicate}")
-        if replicate in ("None", "", None):
-            print("TODO: make things non-replicas")
-            return
         mon = self.screen.monitors[mon_name]
-        replicate = self.screen.monitors[replicate]
-
-        # Making a replica implies:
-        # Set the same position
-        mon.pos_x = replicate.pos_x
-        mon.pos_y = replicate.pos_y
-
-        # Set the same mode if possible
-        matching_mode = mon.get_matching_mode(replicate.get_current_mode())
-        if matching_mode:
-            mon.set_current_mode(matching_mode.name)
+        if replicate in ("None", "", None):
+            print(f"Making {mon_name} NOT a replica")
+            mon.pos_x += 300
         else:
-            # Keep the current mode, and change scaling so it
-            # has the same effective size as the desired mode
-            c_mode = mon.get_current_mode()
-            mod_x, mod_y = c_mode.res_x, c_mode.res_y
-            r_mode = replicate.get_current_mode
-            target_x, target_y = r_mode.res_x, r_mode.res_y
-            scale_x = 1000 * target_x / mod_x
-            scale_y = 1000 * target_y / mod_y
-            self.ui.horizontalScale.setValue(scale_x)
-            self.ui.verticalScale.setValue(scale_y)
+            replicate = self.screen.monitors[replicate]
+            print(f"Making {mon_name} a replica of {replicate}")
+
+            # Making a replica implies:
+            # Set the same position
+            mon.pos_x = replicate.pos_x
+            mon.pos_y = replicate.pos_y
+
+            # Set the same mode if possible
+            matching_mode = mon.get_matching_mode(replicate.get_current_mode())
+            if matching_mode:
+                mon.set_current_mode(matching_mode.name)
+            else:
+                # Keep the current mode, and change scaling so it
+                # has the same effective size as the desired mode
+                c_mode = mon.get_current_mode()
+                mod_x, mod_y = c_mode.res_x, c_mode.res_y
+                r_mode = replicate.get_current_mode
+                target_x, target_y = r_mode.res_x, r_mode.res_y
+                scale_x = 1000 * target_x / mod_x
+                scale_y = 1000 * target_y / mod_y
+                self.ui.horizontalScale.setValue(scale_x)
+                self.ui.verticalScale.setValue(scale_y)
 
         self.screen.update_replica_of()
         for mon in self.screen.monitors.values():
