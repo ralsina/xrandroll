@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "xrandroll"
-version = "0.1.6"
+version = "0.1.7"
 description = "A powertool to configure your display"
 authors = ["Roberto Alsina <roberto.alsina@gmail.com>"]
 license = "MIT"
