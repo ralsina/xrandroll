@@ -253,8 +253,9 @@ class Window(QObject):
                 mod_x, mod_y = mode.res_x, mode.res_y
                 snaps_x.append(monitor.pos_x)
                 snaps_x.append(monitor.pos_x + mod_x)
-                snaps_y.append(monitor.pos_x)
-                snaps_y.append(monitor.pos_x + mod_y)
+                snaps_y.append(monitor.pos_y)
+                snaps_y.append(monitor.pos_y + mod_y)
+        print(snaps_x, snaps_y)
         return snaps_x, snaps_y
 
     def adjust_view(self):
