@@ -285,7 +285,7 @@ class Window(QObject):
         # Show modes
         self.ui.modes.clear()
         monitor = self.screen.monitors[name]
-        for name, mode in monitor.modes.items():
+        for _, mode in monitor.modes.items():
             self.ui.modes.addItem(str(mode))
 
         mode = monitor.get_current_mode()

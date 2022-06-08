@@ -41,6 +41,7 @@ class Screen:
                 mode = mon.get_current_mode()
                 cli.append(f"--pos {int(mon.pos_x)}x{int(mon.pos_y)}")
                 cli.append(f"--mode {mode.res_x}x{mode.res_y}")
+                cli.append(f"--rate {mode.frequency}")
                 mod_x, mod_y = mode.res_x, mode.res_y
                 if mon.orientation in ("left", "right"):
                     mod_x, mod_y = mod_y, mod_x

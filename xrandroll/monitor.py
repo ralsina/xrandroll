@@ -121,7 +121,10 @@ class Monitor:
         return None
 
     def get_current_mode(self):
-        return self.modes[self.get_current_mode_name()]
+        for k, v in self.modes.items():
+            if v.current:
+                return v
+        return None
 
     def set_current_mode(self, mode_name):
         for k, v in self.modes.items():
