@@ -77,8 +77,8 @@ class MonitorItem(QGraphicsRectItem, QObject):
         new_pos = view.mapFromScene(self.orig_pos) + current_pos - click_pos
         new_pos = view.mapToScene(new_pos)
         delta = abs(view.mapToScene(0, 25).y())
-        if not event.modifiers() & Qt.ControlModifier:
-            # Check for snaps
+        if not event.modifiers() & Qt.ControlModifier:  # Ctrl was not pressed, so snap
+            # This snaps the left and top edges
             x = new_pos.x()
             delta_x = min((abs(x - sx), i) for i, sx in enumerate(snaps_x))
             if delta_x[0] < delta:  # snap
@@ -87,5 +87,16 @@ class MonitorItem(QGraphicsRectItem, QObject):
             delta_y = min((abs(y - sy), i) for i, sy in enumerate(snaps_y))
             if delta_y[0] < delta:  # snap
                 new_pos.setY(int(snaps_y[delta_y[1]]))
+
+            # This snaps the right and bottom edges
+            x = new_pos.x() + self.rect().width()
+            delta_x = min((abs(x - sx), i) for i, sx in enumerate(snaps_x))
+            if delta_x[0] < delta:  # snap
+                new_pos.setX(int(snaps_x[delta_x[1]]) - self.rect().width())
+            y = new_pos.y() + self.rect().height()
+            delta_y = min((abs(y - sy), i) for i, sy in enumerate(snaps_y))
+            if delta_y[0] < delta:  # snap
+                new_pos.setY(int(snaps_y[delta_y[1]]) - self.rect().height())
+
         self.setPos(new_pos)
         self.window.show_pos(int(self.pos().x()), int(self.pos().y()))
